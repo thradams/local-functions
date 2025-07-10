@@ -160,7 +160,12 @@ Abstract
                         }();
 		}
  
-	* __func__ used inside literal functions returns "". 
+	* For literal functions, __func__ is defined following the same rules as for non-literal 
+	  functions (see §6.4.2.2). The value of __func__ inside literal functions is an 
+	  implementation-defined, null-terminated string.
+	  
+
+following the same rules but the text implementation-defined string. 
 
 3.3 Constrains:
 
