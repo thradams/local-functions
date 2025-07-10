@@ -104,15 +104,15 @@ Abstract
 	* The type-name shall have a function type. 
 
 	Note:
-	The syntax is ambiguous with that of a compound literals. The disambiguation 
-	occurs by examining the type; Only literal functions may use a function type,
-	while compound literals cannot.
+	The syntax is ambiguous with that of a compound literal. Disambiguation
+	is performed based on the type: only literal functions may have a function type,
+	whereas compound literals shall not
 	
 	Note:
-	function-specifiers (_NoReturn, inline) and storage-class-specifiers (auto, 
-	constexpr, extern, register, static, thread_local, typedef) were removed as 
-	they currently don't have a defined semantic specification for function literals.
-
+	Function-specifiers (_Noreturn, inline) and storage-class specifiers (auto, 
+	constexpr, extern, register, static, thread_local, typedef) are not permitted 
+	in literal function, as their semantics are not currently defined in this 
+	context.
 
 3.2 Semantics
 
