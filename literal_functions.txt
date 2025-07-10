@@ -165,6 +165,7 @@ ABSTRACT
            rules as for non-literal functions (see §6.4.2.2).  The value
            of __func__ is an implementation-defined null-terminated 
            string when used inside literal functions.
+           For comparision, C++ return "operator ()" - https://godbolt.org/z/ddesnKzGf
      
 
    3.3  CONTRAINS:
