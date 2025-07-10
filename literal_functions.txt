@@ -4,6 +4,8 @@ Author: Thiago R Adams
 Date: 2025-07-04  
 Project: ISO/IEC JTC 1/SC 22/WG 14  
 Title: Literal functions
+Target audience: Implementers, users
+Prior art: C++ lambdas without capture
 
 Abstract
 
@@ -115,7 +117,6 @@ Abstract
 	context.
 
 3.2 Semantics
-
 	
 	* The literal function is a function designator (6.3.2.1)
 		
@@ -160,8 +161,6 @@ Abstract
 	  functions (see §6.4.2.2). The value of __func__ inside literal functions is an 
 	  implementation-defined, null-terminated string.
 	  
-
-following the same rules but the text implementation-defined string. 
 
 3.3 Constrains:
 
@@ -216,14 +215,14 @@ following the same rules but the text implementation-defined string.
 			(void ()){ f(); /*ok*/}();		
 		}
 
-	* Variably modified (VM) types defined in an enclosing function shall not be
+	* Variably modified (VM) types defined in an enclosing scope shall not be
 	  referenced
 
 
 4 Generic programming
 
-	Literal functions can instantiate different functions according to the 
-	arguments passed. For instance:
+	A literal function may result in the instantiation of distinct functions depending
+	on the arguments provided. For example:
 
 	Example 4a
  
@@ -254,7 +253,6 @@ following the same rules but the text implementation-defined string.
 			auto p2 = NEW((struct X) {});
 		}         
 
-
 5. Rationale
 
 	Literal functions improve the C language without introducing new concepts, 
@@ -266,7 +264,7 @@ following the same rules but the text implementation-defined string.
 	Maintaining the existing C grammar is the safest option, as it guarantees 
 	that function literal syntax remains always in sync with function declarations.
 
-5.2 Why not having capture like C++ lambdas?
+5.2 Why not having captures like C++ lambdas?
 
 	When lambdas were introduced in C++, the language already included the necessary 
 	infrastructure for capturing such as exceptions, constructors, destructors, 
@@ -276,7 +274,7 @@ following the same rules but the text implementation-defined string.
 	while high-level abstractions might require introducing new concepts that may 
 	not fit well in C.
 
-	Automatic copy of constant objects from the other scope were considered,
+	Automatic copy of constexpr objects from the other scope were considered,
 	This limitation can be removed in the future if necessary.
 
 
