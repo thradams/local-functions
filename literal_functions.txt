@@ -1,0 +1,299 @@
+Nxxxx — Literal functions
+
+Author: Thiago R Adams  
+Date: 2025-07-04  
+Project: ISO/IEC JTC 1/SC 22/WG 14  
+Title: Literal functions
+
+
+History
+
+Abstract
+
+	This proposal introduces literal functions into the C language, 
+	offering a syntax for defining functions at the point of use. 
+	
+	Literal functions allow programmers to define small, local functions
+	without requiring separate file-scope declarations.
+	
+
+1. Background
+
+	Modern programming increasingly favors local reasoning: keeping 
+	logic close to its point of use improves clarity, maintainability, 
+	and reduces cognitive load. 
+
+	C currently lacks a mechanism to define functions at the point 
+	of usage which leads to:
+
+	- Reduced code locality, forcing readers to jump between 
+	  unrelated parts of a source file.
+
+	- Cluttering of file/global scope with functions and structs 
+	  used only once.
+
+
+2. Motivation
+
+	Many standard C library functions (e.g., 'qsort', 'bsearch') or common 
+	APIs rely on callbacks. Today, using them requires extra boilerplate, 
+	especially for asynchronous callbacks.
+	
+	Example 2a
+
+		static int cmp(const void *a, const void *b) {
+    			return (*(const int*)a - *(const int*)b);
+		}
+
+		qsort(arr, n, sizeof(int), cmp);
+
+	With  literal functions, the programmer could write:
+
+	Example 2b
+
+		qsort(arr, 20, sizeof(int), (int (const void *a, const void *b) {
+   			return (*(const int*)a - *(const int*)b);
+  		});
+
+
+	Asynchronous callbacks would have a huge improvement in clarity. Consider 
+	this sample:
+
+	Example 2c
+
+                void async(void (*callback)(int result, void * data));
+
+		struct capture { int value; };
+                
+		static void async_complete(int result, void * data)
+		{
+			struct capture * capture = data;
+                        free(capture);
+		}
+		
+		int main()
+		{
+			struct capture * capture = calloc(1, sizeof * capture); 
+			async(async_complete, capture);
+		}
+
+	Given the current state of the language, the function async_complete, 
+	which is used only once, must be declared at file scope. Since it uses 
+	the struct capture, that struct also needs to be declared at file scope
+
+	With the introduction of function literals, we can declare the struct 
+	capture and 'async_complete', that does not need a name anymore, inside 
+	the local scope.
+
+	Example 2d
+
+		void async(void (*callback)(int result, void * data), void * data);
+
+		int main()
+		{
+			struct capture {int value; }* capture = calloc(1, sizeof * capture); 
+			async((void (int result, void * capture))
+			{
+		    		struct capture * p = capture;
+			       	free(p);
+			}, capture);
+		}
+
+
+3. Syntax and Semantics
+
+3.1 Syntax
+ 
+		postfix-expression: 
+   			...      
+   			literal-function     
+  
+		literal-function:
+   			( attribute-specifier-sequence opt 
+				declaration-specifiers abstract-declarator ) function-body  
+ 
+
+	The abstract-declarator shall have a function type. 
+
+	Note: The syntax is ambiguous with that of a compound literals. The disambiguation 
+	occurs by examining the type; Only literal functions may use a function type, 
+	while compound literals cannot.
+
+
+3.2 Semantics
+
+	
+	* The literal function is a function designator (6.3.2.1)
+		
+	Example 3a
+
+		void main()
+		{		
+			(void (*pf)(void)) = &(void (void)){}; //ok
+                   
+			//error: lvalue required as left operand of assignment
+			&(void (void)){} = 0; 
+		}
+
+	
+	* Identifiers from the enclosing scope, excluding labels, are visible inside the 
+	  literal function.
+
+	Example 3b:
+
+		void main()
+		{		
+                        enum E {A};
+                        int i = 0;
+			(void (void)){
+                           int j = sizeof(i); //ok
+                           enum E e = A; //ok
+                        }();
+		}
+
+	Example 3c:
+		void main()
+		{		
+                        L1:;
+			(void (void)) {
+				//error: label 'L1' used but not defined
+				goto L1; 
+                        }();
+		}
+ 
+	* __func__ used inside literal functions returns "unnamed". 
+
+3.3 Constrains:
+
+	* The name of an object of automatic storage duration defined in an enclosing 
+	  function shall be referenced only in discarded expressions. 
+
+	Example 3d:
+		void f1() {
+    			int i = 0;
+	    		(void(void)){ i = 1; /*error*/ }();
+		}
+
+	Example 3e:
+
+		void f2() {
+    			int i = 0;
+	    		(void(void)){ int j = sizeof(i); /*ok*/ }();
+		}
+
+	Example 3f:
+		int g;
+		void f3() {
+	    		(void(void)){ g = 1; /*ok*/ }();
+		}
+
+	Example 3g:
+		int main()
+		{
+			(struct X {int i;} (void)){ }();
+			struct X x; //ok
+		}
+
+	Example 3h:
+		int main()
+		{
+			(void (struct X {int i;} * p)){}(0);
+			struct X x; //struct X not defined		
+		}
+
+	* VM types defined in an enclosing function shall not be referenced
+
+
+4 Generic programming
+
+	Literal functions can instantiate different functions according to the 
+	arguments passed. For instance:
+
+	Example 4a
+ 
+		#define SWAP(a, b)\
+		  (void (typeof(a)* arg1, typeof(b)* arg2)) { \
+		    typeof(a) temp = *arg1; *arg1 = *arg2; *arg2 = temp; \
+		  }(&(a), &(b))
+
+		int main()
+		{
+    			int a = 1;
+    			int b = 2;
+    			SWAP(a, b);
+		}
+
+	Example 4b
+
+		#define NEW(...)\
+ 		(typeof((__VA_ARGS__))* (void)){\
+ 			typeof(__VA_ARGS__)* _p = malloc(sizeof * _p);\
+   			if (_p) *_p = __VA_ARGS__;\
+   			return _p;\
+		}()
+
+		struct X { const int i; };
+
+		int main() {
+			auto p2 = NEW((struct X) {});
+		}         
+
+5. Recommended Practice
+
+	* Identical literal functions, having the same function type and 
+	  function-body should, but they are not required, to produce the same 
+	  function.
+
+6. Rationale
+
+	Literal functions improves the C language without introducing new 
+	radical concepts, given more flexibility to the existing concept of 
+	functions and compound literals also enabling some kind of generic 
+	functions in C.
+
+	Automatic copy of constant objects from the other scope were considered,
+	This limitation can be removed in the future if necessary.
+
+6.1     Why not C++ lambdas syntax?
+	
+	Maintaining the existing C grammar is the safest option, as it guarantees 
+	that function literal syntax remains always in sync with function declarations.
+
+6.2     Why not having capture like C++ lambdas?
+
+	When lambdas were introduced in C++, the language already included the necessary 
+	infrastructure for capturing such as exceptions, constructors, destructors, 
+	and function objects. In contrast, C lacks these features.
+	
+	Low-level alternatives in C would conflict with existing available patterns, 
+	while high-level abstractions might require introducing new concepts that may 
+	not fit well in C.
+
+7. Compatibility and Impact
+
+	* This feature does not break any existing valid C programs, since compound 
+	literal objects of type function cannot be created in the current C version. 
+
+
+8. Implementation Considerations
+
+ 	Literal functions can be implemented by the compiler as:
+
+	* Anonymous 'static' functions with unique internal names.
+	* Emission of a unique function symbol in the object file.
+
+	Cake transpiler has an implementation (not complete yet) that converts to C99.
+	http://thradams.com/cake/playground.html  
+	
+
+9. References
+
+	* ISO/IEC 9899:2024 (C23), Programming Languages - C.
+        * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2661.pdf
+	* https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2924.pdf
+
+10. Acknowledgements
+	I would like to recognize the following people for their help in this work: 
+	Joseph Myers, Martin Uecker, Jens Gustedt.
+
+
