@@ -5,15 +5,12 @@ Date: 2025-07-04
 Project: ISO/IEC JTC 1/SC 22/WG 14  
 Title: Literal functions
 
-
-History
-
 Abstract
 
 	This proposal introduces literal functions into the C language, offering a 
-	syntax for defining functions at the point of use. 	
-	Literal functions allow programmers to define small, local functions without 
-	requiring separate file-scope declarations.
+	syntax for defining functions at the point of use. Literal functions allow
+	programmers to define small, local functions without requiring separate
+	file-scope declarations.
 	
 
 1. Background
@@ -101,11 +98,10 @@ Abstract
    			literal-function     
   
 		literal-function:
-   			( attribute-specifier-sequence opt 
-			type-specifier-qualifier abstract-declarator ) function-body 
+   			( type-name ) function-body 
  
 
-	* The abstract-declarator shall have a function type. 
+	* The type-name shall have a function type. 
 
 	Note:
 	The syntax is ambiguous with that of a compound literals. The disambiguation 
