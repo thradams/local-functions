@@ -302,7 +302,9 @@ Abstract
 
 	Cake transpiler has an implementation that converts C2Y code to C99.
 	http://thradams.com/cake/playground.html  
-	
+
+	C++ lambda expressions without captures serve as prior art for this 
+	feature, albeit with some differences.
 
 8. References
 
