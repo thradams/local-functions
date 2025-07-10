@@ -24,8 +24,8 @@ Abstract
 	- Reduced code locality, forcing readers to jump between unrelated parts of a 
 	  source file.
 
-	- Cluttering of file/global scope with functions and structs used only once.
-
+	- The file scope may become cluttered with functions and associated structure
+	  declarations used solely for capturing variables.
 
 2. Motivation
 
