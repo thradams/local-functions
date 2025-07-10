@@ -270,6 +270,10 @@ ABSTRACT
       Maintaining the existing C grammar is the safest option, as it 
       guarantees that function literal syntax remains always in sync 
       with function declarations.
+      
+      This design also leaves room for alternative capture models that
+      do not follow the C++ approach. Having different models with the
+      same syntax could be confusing for users.
 
    5.2  Why not having captures like C++ lambdas?
 
