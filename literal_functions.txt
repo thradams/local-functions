@@ -283,7 +283,7 @@ ABSTRACT
 
       Automatic copy of constexpr objects from the other scope were 
       considered, this limitation can be removed in the future if 
-      necessary.
+      necessary. (C++ allows it https://godbolt.org/z/je4vhcecv)
 
 
 6. COMPATIBILITY AND IMPACT
