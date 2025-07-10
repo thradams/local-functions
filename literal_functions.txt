@@ -105,7 +105,7 @@ Abstract
 			type-specifier-qualifier abstract-declarator ) function-body 
  
 
-	The abstract-declarator shall have a function type. 
+	* The abstract-declarator shall have a function type. 
 
 	Note:
 	The syntax is ambiguous with that of a compound literals. The disambiguation 
@@ -114,7 +114,7 @@ Abstract
 	
 	Note:
 	function-specifiers (_NoReturn, inline) and storage-class-specifiers (auto, 
-	constexpr, extern, register, static, thread_local,typedef) were removed as 
+	constexpr, extern, register, static, thread_local, typedef) were removed as 
 	they currently don't have a defined semantic specification for function literals.
 
 
@@ -192,6 +192,7 @@ Abstract
 
 
 	Example 3g:
+
 		int main()
 		{
 			(struct X {int i;} (void)){ }();
