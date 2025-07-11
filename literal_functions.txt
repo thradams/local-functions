@@ -25,7 +25,7 @@ ABSTRACT
         parts of a source file.
 
    -    The file scope may become cluttered with functions and 
-        associated structure declarations used to support captures.
+        associated struct declarations used to support captures.
         
 
 2.  MOTIVATION
@@ -34,17 +34,14 @@ ABSTRACT
    common APIs rely on callbacks.  Today, using them requires extra 
    boilerplate, especially for asynchronous callbacks.
    
-   Example 2a
-
-      static int cmp(const void *a, const void *b) {
+      static int cmp(const void *a, const void *b)
+      {
              return (*(const int*)a - *(const int*)b);
       }
 
       qsort(arr, n, sizeof(int), cmp);
 
    With literal functions, the programmer could write:
-
-   Example 2b
 
       qsort(arr, 20, sizeof(int), (int (const void *a, const void *b)
       {
@@ -53,8 +50,6 @@ ABSTRACT
 
    Asynchronous callbacks would have a huge improvement in clarity. 
    Consider this sample:
-
-   Example 2c
 
       void async(void (*callback)(int result, void * data), void * data);
       
@@ -79,8 +74,6 @@ ABSTRACT
    capture and async_complete (that does not need a name anymore) inside
    the local scope.
 
-   Example 2d
-
       void async(void (*callback)(int result, void* data), void * data);
 
       int main()
@@ -95,13 +88,13 @@ ABSTRACT
          }, capture);
       }
 
-   Example 2e
+      Sample using thrd_create
 
       int main()
       {
          thrd_t t;
 
-         int r = thrd_create(&t, (int (void * aArg)) {
+         int r = thrd_create(&t, (int (void * data)) {
             printf("Hello world!\n");
             return 0;
          }, NULL);
@@ -142,8 +135,6 @@ ABSTRACT
    
          * The literal function is a function designator (6.3.3.1)
       
-         Example 3a
-
             void main()
             {      
                (void (*pf)(void)) = &(void (void)){}; //ok
@@ -156,10 +147,9 @@ ABSTRACT
          * Identifiers from the enclosing scope, excluding labels, 
          are visible inside the literal function.
 
-         Example 3b:
+         Samples:
 
-            void main()
-            {      
+            int main() {      
                enum E {A};
                int i = 0;
                (void (void)) {
@@ -168,10 +158,8 @@ ABSTRACT
                }();
             }
 
-         Example 3c:
 
-            void main()
-            {      
+            int main() {      
                L1:;
                (void (void)) {
                   //error: label 'L1' used but not defined
@@ -201,7 +189,6 @@ ABSTRACT
             (void(void)){ i = 1; /*error*/ }();
          }
 
-
          int main() {
            int i = 0;
            (void(void)){ int j = sizeof(i); /*ok*/ }();
@@ -210,16 +197,6 @@ ABSTRACT
          int g;
          int main() {
             (void(void)){ g = 1; /*ok*/ }();
-         }
-
-         int main() {
-            (struct X {int i;} (void)){ }();
-            struct X x; //ok
-         }
-
-         int main() {
-            (void (struct X {int i;} * p)){}(0);
-            struct X x; //struct X not defined      
          }
 
          int main() {
@@ -238,6 +215,25 @@ ABSTRACT
          int f(int n) {
             int ar[n];
             (void ()){ typeof(ar) b; /*error*/ }();      
+         }
+
+      * An identifier declared outside the body or parameter list of a 
+        literal function has the enclosing scope (block or file scope). 
+        An identifier declared within the parameter list of a literal 
+        function has block scope, which is the literal function body 
+        itself. These rules are consistent with those already in 
+        effect. See 6.2.1.
+
+        Sample:
+
+         int main() {
+            (struct X { int i; } (struct Y *y)) {
+               struct X x = {};
+               return x;
+            }(nullptr);
+
+           struct X x; //ok
+           struct Y y; /*error*/
          }
 
 4.  GENERIC FUNCTIONS
