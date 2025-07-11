@@ -1,11 +1,12 @@
                            N3645 - Literal functions
 
 Author : Thiago R Adams  
-Date   : 2025-07-04  
+Date   : 2025-07-11  
 Project: ISO/IEC JTC 1/SC 22/WG 14  
 Title  : Literal functions
 Target audience: Implementers, users
 Prior art: C++ lambdas without capture
+Revision: r0
 
 ABSTRACT
 
@@ -29,7 +30,7 @@ ABSTRACT
 
 2.  MOTIVATION
 
-   Many standard C library functions (e.g., 'qsort', 'bsearch') or 
+   Many standard C library functions (e.g., 'qsort', 'thrd_create') and
    common APIs rely on callbacks.  Today, using them requires extra 
    boilerplate, especially for asynchronous callbacks.
    
@@ -55,7 +56,7 @@ ABSTRACT
 
    Example 2c
 
-      void async(void (*callback)(int result, void * data));
+      void async(void (*callback)(int result, void * data), void * data);
       
       struct capture { int value; };
                 
@@ -80,7 +81,7 @@ ABSTRACT
 
    Example 2d
 
-      void async(void (*callback)(int result, void * data),void * data);
+      void async(void (*callback)(int result, void* data), void * data);
 
       int main()
       {
@@ -187,63 +188,46 @@ ABSTRACT
            https://godbolt.org/z/ddesnKzGf
      
 
-   3.3  CONTRAINS
+   3.3  CONSTRAINS
       
       * The name of an object of automatic storage duration defined in 
         an enclosing function shall be referenced only in discarded 
         expressions.
 
-      Example 3d:
+      Samples:
 
-         void f1() {
+         int main() {
             int i = 0;
             (void(void)){ i = 1; /*error*/ }();
          }
 
 
-      Example 3e:
-
-         void f2() {
+         int main() {
            int i = 0;
            (void(void)){ int j = sizeof(i); /*ok*/ }();
          }
 
-
-      Example 3f:
-
          int g;
-         void f3() {
+         int main() {
             (void(void)){ g = 1; /*ok*/ }();
          }
 
-      Example 3g:
-
-         int main()
-         {
+         int main() {
             (struct X {int i;} (void)){ }();
             struct X x; //ok
          }
 
-      Example 3h:
-
-         int main()
-         {
+         int main() {
             (void (struct X {int i;} * p)){}(0);
             struct X x; //struct X not defined      
          }
 
-      Example 3i:
-
-         int main()
-         {
+         int main() {
             int f();
             (void ()){ f(); /*ok*/}();      
          }
 
-      Example 3j:
-
-         int main()
-         {
+         int main() {
             static int i = 0;
             (void ()){ i = 1; /*ok*/ }();      
          }
@@ -251,27 +235,28 @@ ABSTRACT
       * Variably modified (VM) types defined in an enclosing scope shall
         not be referenced
 
+         int f(int n) {
+            int ar[n];
+            (void ()){ typeof(ar) b; /*error*/ }();      
+         }
 
 4.  GENERIC FUNCTIONS
 
    A literal function may result in the instantiation of distinct 
    functions depending on the arguments provided.  For example:
 
-   Example 4a
- 
-      #define SWAP(a, b)\
+       #define SWAP(a, b)\
         (void (typeof(a)* arg1, typeof(b)* arg2)) { \
           typeof(a) temp = *arg1; *arg1 = *arg2; *arg2 = temp; \
         }(&(a), &(b))
 
-      int main()
-      {
-             int a = 1;
-             int b = 2;
-             SWAP(a, b);
+      int main() {
+         int a = 1;
+         int b = 2;
+         SWAP(a, b);
       }
 
-   Example 4b
+
 
       #define NEW(...)\
        (typeof((__VA_ARGS__))* (void)){\
@@ -300,8 +285,6 @@ ABSTRACT
 
       Consider this sample:
 
-      Sample 5.1.0
-
          int main() {
             (struct X { int i; } ()) {
                struct X x = {};
@@ -319,8 +302,8 @@ ABSTRACT
       do not follow the C++ approach. Having different models with the
       same syntax could be confusing for users.
       
-      Interoperability using a function pointer and a data argument 
-      is possible in both directions, from C to C++ and from C++ to C,
+      Interoperability using a pair of pointer to function + data is 
+      possible in both directions, from C to C++ and from C++ to C,
       when captureless lambdas are used.
 
    5.2  Why not having captures like C++ lambdas?
