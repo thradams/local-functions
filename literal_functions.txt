@@ -1,9 +1,9 @@
-                           Nxxxx — Literal functions
+                           N3645 - Literal functions
 
-Author: Thiago R Adams  
-Date: 2025-07-04  
+Author : Thiago R Adams  
+Date   : 2025-07-04  
 Project: ISO/IEC JTC 1/SC 22/WG 14  
-Title: Literal functions
+Title  : Literal functions
 Target audience: Implementers, users
 Prior art: C++ lambdas without capture
 
@@ -24,8 +24,8 @@ ABSTRACT
         parts of a source file.
 
    -    The file scope may become cluttered with functions and 
-        associated structure declarations used solely for capturing 
-        variables.
+        associated structure declarations used to support captures.
+        
 
 2.  MOTIVATION
 
@@ -45,9 +45,10 @@ ABSTRACT
 
    Example 2b
 
-      qsort(arr, 20, sizeof(int), (int (const void *a, const void *b) {
+      qsort(arr, 20, sizeof(int), (int (const void *a, const void *b)
+      {
             return (*(const int*)a - *(const int*)b);
-        });
+      });
 
    Asynchronous callbacks would have a huge improvement in clarity. 
    Consider this sample:
@@ -88,11 +89,27 @@ ABSTRACT
          }* capture = calloc(1, sizeof * capture); 
 
          async((void (int result, void * capture)) {
-                struct capture * p = capture;
+            struct capture * p = capture;
             free(p);
          }, capture);
       }
 
+   Example 2e
+
+      int main()
+      {
+         thrd_t t;
+
+         int r = thrd_create(&t, (int (void * aArg)) {
+            printf("Hello world!\n");
+            return 0;
+         }, NULL);
+  
+         if (r == thrd_success)
+            thrd_join(t, NULL);
+         
+         return 0;
+      }
 
 3.  SYNTAX AND SEMANTICS
 
@@ -122,7 +139,7 @@ ABSTRACT
 
       3.2 Semantics
    
-         * The literal function is a function designator (6.3.2.1)
+         * The literal function is a function designator (6.3.3.1)
       
          Example 3a
 
@@ -162,13 +179,15 @@ ABSTRACT
             }
  
          * For literal functions, __func__ is defined following the same 
-           rules as for non-literal functions (see §6.4.2.2).  The value
-           of __func__ is an implementation-defined null-terminated 
-           string when used inside literal functions.
-           For comparision, C++ return "operator ()" - https://godbolt.org/z/ddesnKzGf
+           rules as for non-literal functions. The value of __func__ is 
+           an implementation-defined null-terminated string when used 
+           inside literal functions.
+
+           For comparison, C++ returns "operator ()" 
+           https://godbolt.org/z/ddesnKzGf
      
 
-   3.3  CONTRAINS:
+   3.3  CONTRAINS
       
       * The name of an object of automatic storage duration defined in 
         an enclosing function shall be referenced only in discarded 
@@ -221,6 +240,14 @@ ABSTRACT
             (void ()){ f(); /*ok*/}();      
          }
 
+      Example 3j:
+
+         int main()
+         {
+            static int i = 0;
+            (void ()){ i = 1; /*ok*/ }();      
+         }
+
       * Variably modified (VM) types defined in an enclosing scope shall
         not be referenced
 
@@ -268,12 +295,33 @@ ABSTRACT
    5.1  Why not C++ lambdas syntax?
    
       Maintaining the existing C grammar is the safest option, as it 
-      guarantees that function literal syntax remains always in sync 
-      with function declarations.
-      
+      ensures that function literal syntax stays in sync with function
+      declarations and naturally preserves compatible scope rules
+
+      Consider this sample:
+
+      Sample 5.1.0
+
+         int main() {
+            (struct X { int i; } ()) {
+               struct X x = {};
+               return x;
+            }();
+           struct X x = {}; /*ok*/
+         }
+
+      The scope rules for the visibility of struct X are the same as 
+      those for functions. With the C++ lambda syntax, the return type
+      would be specified after the parameter scope, which could 
+      interfere with scope handling or complicate the implementation.
+
       This design also leaves room for alternative capture models that
       do not follow the C++ approach. Having different models with the
       same syntax could be confusing for users.
+      
+      Interoperability using a function pointer and a data argument 
+      is possible in both directions, from C to C++ and from C++ to C,
+      when captureless lambdas are used.
 
    5.2  Why not having captures like C++ lambdas?
 
@@ -286,10 +334,11 @@ ABSTRACT
       patterns, while high-level abstractions might require introducing
       new concepts that may not fit well in C.
 
-      Automatic copy of constexpr objects from the other scope were 
-      considered, this limitation can be removed in the future if 
-      necessary. (C++ allows it https://godbolt.org/z/je4vhcecv if you don't
-      take the address)
+      Automatic capture of constexpr objects, or constant objects 
+      declared with the register storage-qualifier, from the other 
+      scope were considered. This limitation can be removed in the 
+      future if necessary. (C++ allows it 
+      https://godbolt.org/z/je4vhcecv if you don't take the address)
 
 
 6. COMPATIBILITY AND IMPACT
@@ -324,7 +373,7 @@ ABSTRACT
 
 8. REFERENCES
 
-   * ISO/IEC 9899:2024 (C23), Programming Languages - C.
+   * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3550.pdf  
    * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2661.pdf
    * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2924.pdf
 
@@ -332,5 +381,4 @@ ABSTRACT
 
    I would like to recognize the following people for their help in this
    work: Joseph Myers, Martin Uecker, Jens Gustedt.
-
 
