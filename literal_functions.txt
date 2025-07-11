@@ -172,9 +172,7 @@ ABSTRACT
            an implementation-defined null-terminated string when used 
            inside literal functions.
 
-           For comparison, C++ returns "operator ()" 
-           https://godbolt.org/z/ddesnKzGf
-     
+           Note: For comparison, C++ lambdas returns "operator ()" 
 
    3.3  CONSTRAINS
       
@@ -316,9 +314,10 @@ ABSTRACT
       Automatic capture of constexpr objects, or constant objects 
       declared with the register storage-qualifier, from the other 
       scope were considered. This limitation can be removed in the 
-      future if necessary. (C++ allows it 
-      https://godbolt.org/z/je4vhcecv if you don't take the address)
-
+      future if necessary.
+      
+      Note: For comparison, C++ lambdas without captures can use 
+      constexpr objects, provided their addresses are not taken.
 
 6. COMPATIBILITY AND IMPACT
 
