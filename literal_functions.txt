@@ -45,7 +45,7 @@ ABSTRACT
 
       qsort(arr, 20, sizeof(int), (int (const void *a, const void *b)
       {
-            return (*(const int*)a - *(const int*)b);
+         return (*(const int*)a - *(const int*)b);
       });
 
    Asynchronous callbacks would have a huge improvement in clarity. 
@@ -88,7 +88,7 @@ ABSTRACT
          }, capture);
       }
 
-      Sample using thrd_create
+   Sample using thrd_create
 
       int main()
       {
@@ -107,72 +107,72 @@ ABSTRACT
 
 3.  SYNTAX AND SEMANTICS
 
-      3.1 Syntax
+   3.1 Syntax
  
-         postfix-expression: 
-            ...      
-            literal-function     
+      postfix-expression: 
+         ...      
+         literal-function     
   
-         literal-function:
-            ( type-name ) function-body 
+      literal-function:
+         ( type-name ) function-body 
  
 
-      * The type-name shall have a function type. 
+   * The type-name shall have a function type. 
 
-      Note:
-         The syntax is ambiguous with that of a compound literal. 
-         Disambiguation is performed based on the type: only literal 
-         functions may have a function type, whereas compound literals 
-         shall not.
+   Note:
+      The syntax is ambiguous with that of a compound literal. 
+      Disambiguation is performed based on the type: only literal 
+      functions may have a function type, whereas compound literals 
+      shall not.
    
-      Note:
-         Function-specifiers (_Noreturn, inline) and storage-class 
-         specifiers (auto, constexpr, extern, register, static, 
-         thread_local, typedef) are not permitted in literal function,
-         as their semantics are not currently defined in this context.
+   Note:
+      Function-specifiers (_Noreturn, inline) and storage-class 
+      specifiers (auto, constexpr, extern, register, static, 
+      thread_local, typedef) are not permitted in literal function,
+      as their semantics are not currently defined in this context.
 
-      3.2 Semantics
+   3.2 Semantics
    
-         * The literal function is a function designator (6.3.3.1)
+      * The literal function is a function designator (6.3.3.1)
       
-            void main()
-            {      
-               (void (*pf)(void)) = &(void (void)){}; //ok
+         void main()
+         {      
+            (void (*pf)(void)) = &(void (void)){}; //ok
                    
-               //error: lvalue required as left operand of assignment
-               &(void (void)){} = 0; 
-            }
+            //error: lvalue required as left operand of assignment
+            &(void (void)){} = 0; 
+         }
 
    
-         * Identifiers from the enclosing scope, excluding labels, 
-         are visible inside the literal function.
+      * Identifiers from the enclosing scope, excluding labels, 
+        are visible inside the literal function.
 
-         Samples:
+      Samples:
 
-            int main() {      
-               enum E {A};
-               int i = 0;
-               (void (void)) {
-                  int j = sizeof(i); //ok
-                  enum E e = A; //ok
-               }();
-            }
+         int main() {      
+            enum E {A};
+            int i = 0;
+            (void (void)) {
+               int j = sizeof(i); //ok
+               enum E e = A; //ok
+            }();
+         }
 
 
-            int main() {      
-               L1:;
-               (void (void)) {
-                  //error: label 'L1' used but not defined
-                  goto L1; 
-               }();
-            }
+         int main() {      
+            L1:;
+            (void (void)) {
+               //error: label 'L1' used but not defined
+               goto L1; 
+            }();
+         }
  
-         * For literal functions, __func__ is defined following the same 
-           rules as for non-literal functions. The value of __func__ is 
-           an implementation-defined null-terminated string when used 
-           inside literal functions.
+      * For literal functions, __func__ is defined following the same 
+        rules as for non-literal functions. The value of __func__ is 
+        an implementation-defined null-terminated string when used 
+        inside literal functions.
 
-           Note: For comparison, C++ lambdas returns "operator ()" 
+        Note: For comparison, C++ lambdas returns "operator ()" 
 
    3.3  CONSTRAINS
       
@@ -215,14 +215,14 @@ ABSTRACT
             (void ()){ typeof(ar) b; /*error*/ }();      
          }
 
-      * An identifier declared outside the body or parameter list of a 
-        literal function has the enclosing scope (block or file scope). 
-        An identifier declared within the parameter list of a literal 
-        function has block scope, which is the literal function body 
-        itself. These rules are consistent with those already in 
-        effect. See 6.2.1.
+       * An identifier declared outside the body or parameter list of a 
+         literal function has the enclosing scope (block or file scope). 
+         An identifier declared within the parameter list of a literal 
+         function has block scope, which is the literal function body 
+         itself. These rules are consistent with those already in 
+         effect. See 6.2.1.
 
-        Sample:
+      Sample:
 
          int main() {
             (struct X { int i; } (struct Y *y)) {
@@ -239,17 +239,16 @@ ABSTRACT
    A literal function may result in the instantiation of distinct 
    functions depending on the arguments provided.  For example:
 
-       #define SWAP(a, b)\
-        (void (typeof(a)* arg1, typeof(b)* arg2)) { \
-          typeof(a) temp = *arg1; *arg1 = *arg2; *arg2 = temp; \
-        }(&(a), &(b))
+      #define SWAP(a, b)\
+       (void (typeof(a)* arg1, typeof(b)* arg2)) { \
+         typeof(a) temp = *arg1; *arg1 = *arg2; *arg2 = temp; \
+       }(&(a), &(b))
 
       int main() {
          int a = 1;
          int b = 2;
          SWAP(a, b);
       }
-
 
 
       #define NEW(...)\
@@ -319,14 +318,14 @@ ABSTRACT
       Note: For comparison, C++ lambdas without captures can use 
       constexpr objects, provided their addresses are not taken.
 
-6. COMPATIBILITY AND IMPACT
+6.  COMPATIBILITY AND IMPACT
 
    * This feature does not break any existing valid C programs, since
      compound literal objects of type function cannot be created in the
      current C version. 
 
 
-7. IMPLEMENTATION CONSIDERATIONS
+7.  IMPLEMENTATION CONSIDERATIONS
 
    Literal functions can be implemented by the compiler as:
 
