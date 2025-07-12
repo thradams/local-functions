@@ -6,7 +6,10 @@ Project: ISO/IEC JTC 1/SC 22/WG 14
 Title  : Literal functions
 Target audience: Implementers, users
 Prior art: C++ lambdas without capture
-Revision: r0
+Revision: r1
+
+REVISIONS
+   r1 - fixed cmp sample
 
 ABSTRACT
 
@@ -34,18 +37,20 @@ ABSTRACT
    common APIs rely on callbacks.  Today, using them requires extra 
    boilerplate, especially for asynchronous callbacks.
    
-      static int cmp(const void *a, const void *b)
-      {
-             return (*(const int*)a - *(const int*)b);
+      static int cmp(const void *a, const void *b) {
+         int arg1 = *(const int*)a;
+         int arg2 = *(const int*)b; 
+         return (arg1 > arg2) - (arg1 < arg2);
       }
 
       qsort(arr, n, sizeof(int), cmp);
 
    With literal functions, the programmer could write:
 
-      qsort(arr, 20, sizeof(int), (int (const void *a, const void *b)
-      {
-         return (*(const int*)a - *(const int*)b);
+      qsort(arr, 20, sizeof(int), (int (const void *a, const void *b) {
+         int arg1 = *(const int*)a;
+         int arg2 = *(const int*)b; 
+         return (arg1 > arg2) - (arg1 < arg2);
       });
 
    Asynchronous callbacks would have a huge improvement in clarity. 
