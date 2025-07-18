@@ -1,0 +1,30 @@
+
+Title:  Remove errno_t dependency from Annex K
+
+
+ABSTRACT
+
+I propose to define errno_t independently of __STDC_WANT_LIB_EXT1__ .
+
+Rationale:
+
+   We have the following note in the standard:
+
+   "458) As a matter of programming style, errno_t can be used as the type of something 
+   that deals only with the values that can be found in errno. For example, a function 
+   which returns the value of errno could be declared as having the return type
+   errno_t.
+   "
+
+   Since errno is independt of annex K, errno also whould be.
+
+Breaking changes
+
+In case some code is defining errno_t with a differently from 
+typedef int errno_t , and including <errno.h> for instance,
+the it is a breaking change. But this is improvale, the already 
+existence of errno_t inside the standard (even if optional).
+
+
+WORDING
+  Base on 
