@@ -56,7 +56,7 @@ ABSTRACT
    Asynchronous callbacks would have a huge improvement in clarity. 
    Consider this sample:
 
-      void async(void (*callback)(int result, void * data), void * data);
+      void async(void (*callback)(int result, void * data), void * data, size_t datasize);
       
       struct capture { int value; };
                 
@@ -66,8 +66,9 @@ ABSTRACT
       }
       
       int main() {
-         struct capture * capture = calloc(1, sizeof * capture); 
-         async(async_complete, capture);
+         int local = 123;
+         struct { int value;  } capture = {local}; 
+         async(async_complete, &capture, sizeof capture);
       }
 
    Given the current state of the language, the function async_complete,
@@ -79,19 +80,22 @@ ABSTRACT
    capture and async_complete (that does not need a name anymore) inside
    the local scope.
 
-      void async(void (*callback)(int result, void* data), void * data);
+      void async(void (*callback)(int result, void* data), void * data, size_t datasize);
 
       int main()
       {
-         struct capture { 
-            int value; 
-         }* capture = calloc(1, sizeof * capture); 
+         int local = 123;
+         struct { int value;  } capture = {local}; 
 
-         async((void (int result, void * capture)) {
-            struct capture * p = capture;
-            free(p);
-         }, capture);
+         async((void (int result, void * data)) {
+            typeof(capture)* captured = data;
+         
+         }, &capture, sizeof capture);
       }
+
+
+   The function and its capture are defined together, making the void* 
+   cast safe.
 
    Sample using thrd_create
 
@@ -99,7 +103,8 @@ ABSTRACT
       {
          thrd_t t;
 
-         int r = thrd_create(&t, (int (void * data)) {
+         int r = thrd_create(&t, (int (void * data))
+         {
             printf("Hello world!\n");
             return 0;
          }, NULL);
