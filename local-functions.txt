@@ -34,7 +34,10 @@ Target audience: Implementers, users
       block-item:
         ...
         function-definition
- 
+
+   Note: n3654 "Accessing the Context of Nested Functions" requires static in front of 
+   local functions. In this proposal static is optional.
+
    3.2 Semantics
 
        Local functions use the same scope rules as those defined for literal functions 
@@ -171,7 +174,7 @@ Target audience: Implementers, users
    
    * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3645.pdf
    * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3657.htm
-   * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3550.pdf  
+   * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3654.pdf
    * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2661.pdf
    * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2924.pdf
 
