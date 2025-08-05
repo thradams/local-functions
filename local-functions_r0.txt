@@ -78,12 +78,12 @@ Target audience: Implementers, users
          }
  
       * For local functions, __func__ is defined following the same 
-        rules as for non-local functions. The value of __func__ is 
-        an implementation-defined null-terminated string when used 
-        inside local functions.
+        rules as for non-local functions. The value of __func__ is an
+        implementation-defined null-terminated string when used inside
+        local functions.
 
-        Note: For comparison, GCC nested function returns the 
-        function name
+        Note: For comparison, GCC nested function returns the function
+        name
 
    3.3  CONSTRAINS
       

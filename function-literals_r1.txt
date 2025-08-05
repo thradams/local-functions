@@ -17,9 +17,9 @@ REVISIONS
 ABSTRACT
 
    This proposal introduces function literals into the C language,
-   offering a syntax for defining functions at the point of use. Functions 
-   literals allow programmers to define small, local functions  without
-   requiring separate file-scope declarations.
+   offering a syntax for defining functions at the point of use. 
+   Functions literals allow programmers to define small, local functions  
+   without requiring separate file-scope declarations.
    
 
 1.  INTRODUCTION
