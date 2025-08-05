@@ -11,8 +11,8 @@ Revision: r1
 REVISIONS
    r1 
    - Fixed cmp sample,
-   - Title changed from "literal functions" to "function literals"
-
+   - "literal functions" renamed to "function literals"
+   - This proposal supersedes N3645
 
 ABSTRACT
 
