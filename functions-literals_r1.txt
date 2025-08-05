@@ -1,4 +1,4 @@
-                           N3645 - Function literals
+---------------------- N3645 Function literals -------------------------
 
 Author : Thiago R Adams  
 Date   : 2025-08-05  

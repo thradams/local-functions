@@ -1,16 +1,16 @@
 
-           NXXXX - Allow Function Definitions Inside Function Scope
+---------------------- NXXXX Local functions ---------------------------
 
 Author : Thiago R Adams  
 Date   : 2025-08-05  
 Project: ISO/IEC JTC 1/SC 22/WG 14  
-Title  : Allow Function Definitions Inside Function Scope
+Title  : Local functions
 Target audience: Implementers, users
 
 1.  ABSTRACT
 
-   This proposal introduces support for defining functions inside the scope 
-   of another function in the C language. 
+   This proposal introduces support for defining functions inside the 
+   scope of another function in the C language. 
         
 2. RATIONALE
 
@@ -20,12 +20,18 @@ Target audience: Implementers, users
     Allowing inner function definitions would enable:
 
     - Better organization of code.
-    - Encapsulation of helper logic that is not meaningful outside the enclosing function.
-    - Avoidance of polluting the file or translation unit with static helper functions.
-    - Complements Literal functions N3645
 
-   Following the same principles as N3645, this proposal avoids introducing closures, keeping 
-   the semantics simple and compatible with C's execution and memory model.
+    - Encapsulation of helper logic that is not meaningful  outside  the
+      enclosing function.
+
+    - Avoidance of polluting the file or translation  unit  with  static 
+      helper functions.
+
+    - Complements Function Literals N3645
+
+   Following the same principles as N3645, this proposal avoids 
+   introducing closures, keeping the semantics  simple   and  compatible 
+   with C's execution and memory model.
 
 3. SYNTAX AND SEMANTICS
 
@@ -35,21 +41,23 @@ Target audience: Implementers, users
         ...
         function-definition
 
-   Note: n3654 "Accessing the Context of Nested Functions" requires static in front of 
-   local functions. In this proposal static is optional.
+   Note: n3654 "Accessing the Context of Nested Functions" requires 
+   static in front of local functions. In this proposal static is 
+   optional.
 
    3.2 Semantics
 
-       Local functions use the same scope rules as those defined for literal functions 
-       in N3645.
+       Local functions use the same scope rules as those defined for 
+       function literals in N3645.
    
-      * Identifiers from the enclosing scope, excluding labels, are visible inside
-        the local function scope.
+      * Identifiers from the enclosing scope, excluding labels, are 
+        visible inside the local function scope.
 
       Samples:
 
-         int main() {      
-            enum E {A};
+         int main()
+         {      
+            enum E { A };
             int i = 0;
             void f(void)
             {
@@ -59,7 +67,8 @@ Target audience: Implementers, users
          }
 
 
-         int main() {      
+         int main()
+         {      
             L1:;
             void f(void)
             {
@@ -73,7 +82,8 @@ Target audience: Implementers, users
         an implementation-defined null-terminated string when used 
         inside local functions.
 
-        Note: For comparison, GCC returns the function name
+        Note: For comparison, GCC nested function returns the 
+        function name
 
    3.3  CONSTRAINS
       
@@ -83,7 +93,8 @@ Target audience: Implementers, users
 
       Samples:
 
-         int main() {
+         int main()
+         {
             int i = 0;
             void f(void)
             { 
@@ -91,7 +102,8 @@ Target audience: Implementers, users
             };
          }
 
-         int main() {
+         int main()
+         {
            int i = 0;
            void f(void)
            {
@@ -100,14 +112,16 @@ Target audience: Implementers, users
          }
 
          int g;
-         int main() {
+         int main()
+         {
             void f(void)
             { 
                g = 1; /*ok*/ 
             }
          }
 
-         int main() {
+         int main()
+         {
             int f();
             void g()
             {
@@ -115,7 +129,8 @@ Target audience: Implementers, users
             }      
          }
 
-         int main() {
+         int main()
+         {
             static int i = 0;
             void f()
             { 
@@ -143,7 +158,8 @@ Target audience: Implementers, users
 
       Sample:
 
-         int main() {
+         int main()
+         {
             struct X { int i; } f (struct Y *y)
             {
                struct X x = {};
