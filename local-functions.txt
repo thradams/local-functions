@@ -7,27 +7,27 @@ Project: ISO/IEC JTC 1/SC 22/WG 14
 Title  : Allow Function Definitions Inside Function Scope
 Target audience: Implementers, users
 
-ABSTRACT
+1.  ABSTRACT
 
    This proposal introduces support for defining functions inside the scope 
    of another function in the C language. 
         
-2. Rationale
+2. RATIONALE
 
     C currently allows function declarations inside block scope, but not 
-    function definitions. Allowing inner function definitions would enable:
+    function definitions. 
+    
+    Allowing inner function definitions would enable:
 
     - Better organization of code.
     - Encapsulation of helper logic that is not meaningful outside the enclosing function.
     - Avoidance of polluting the file or translation unit with static helper functions.
     - Complements Literal functions N3645
 
-
    Following the same principles as N3645, this proposal avoids introducing closures, keeping 
    the semantics simple and compatible with C's execution and memory model.
 
-
-3.  SYNTAX AND SEMANTICS
+3. SYNTAX AND SEMANTICS
 
    3.1 Syntax
  
@@ -156,17 +156,21 @@ ABSTRACT
 6.  COMPATIBILITY AND IMPACT
 
    * This feature does not break any existing valid C programs.
+   * GCC nested functions provides an extension where captures
+     are allowed.
 
-7 Existing implementations
+7. EXISTING IMPLEMENTATIONS
 
-    Cake transpiler has an implementation that converts C2Y code to
-    C99.
+    GCC nested functions without capturing variables.
+
+    Cake transpiler has an implementation that converts C2Y 
+    code to C99.
     http://thradams.com/cake/playground.html  
 
- 
-
 8. REFERENCES
+   
    * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3645.pdf
+   * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3657.htm
    * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3550.pdf  
    * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2661.pdf
    * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2924.pdf
