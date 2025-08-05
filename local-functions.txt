@@ -2,11 +2,10 @@
            NXXXX - Allow Function Definitions Inside Function Scope
 
 Author : Thiago R Adams  
-Date   : 2025-07-11  
+Date   : 2025-08-05  
 Project: ISO/IEC JTC 1/SC 22/WG 14  
 Title  : Allow Function Definitions Inside Function Scope
 Target audience: Implementers, users
-
 
 ABSTRACT
 
@@ -26,8 +25,8 @@ ABSTRACT
     - Complements Literal functions N3645
 
 
-   This proposal avoids introducing closures keeping semantics simple and compatible with 
-   C's execution and memory model. 
+   Following the same principles as N3645, this proposal avoids introducing closures, keeping 
+   the semantics simple and compatible with C's execution and memory model.
 
 
 3.  SYNTAX AND SEMANTICS
@@ -40,10 +39,11 @@ ABSTRACT
  
    3.2 Semantics
 
-       Local functions uses the same scope rules used by N3645 Literal functions 
+       Local functions use the same scope rules as those defined for literal functions 
+       in N3645.
    
-      * Identifiers from the enclosing scope, excluding labels, 
-        are visible inside the literal function.
+      * Identifiers from the enclosing scope, excluding labels, are visible inside
+        the literal function.
 
       Samples:
 
@@ -159,7 +159,6 @@ ABSTRACT
 
    * This feature does not break any existing valid C programs.
 
-
 7 Existing implementations
 
     Cake transpiler has an implementation that converts C2Y code to
@@ -169,7 +168,7 @@ ABSTRACT
  
 
 8. REFERENCES
-
+   * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3645.pdf
    * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3550.pdf  
    * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2661.pdf
    * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2924.pdf
