@@ -163,7 +163,8 @@ Target audience: Implementers, users
     GCC nested functions without capturing variables.
 
     Cake transpiler has an implementation that converts C2Y 
-    code to C99.
+    code to C99. (Missing some constrains, like usage of VM types)
+
     http://thradams.com/cake/playground.html  
 
 8. REFERENCES
