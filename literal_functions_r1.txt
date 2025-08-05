@@ -1,9 +1,9 @@
                            N3645 - Function literals
 
 Author : Thiago R Adams  
-Date   : 2025-07-11  
+Date   : 2025-08-05  
 Project: ISO/IEC JTC 1/SC 22/WG 14  
-Title  : Literal functions
+Title  : Function literals
 Target audience: Implementers, users
 Prior art: C++ lambdas without capture
 Revision: r1
