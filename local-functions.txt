@@ -10,9 +10,7 @@ Target audience: Implementers, users
 ABSTRACT
 
    This proposal introduces support for defining functions inside the scope 
-   of another function in the C language. These inner functions would have 
-   lexical scope and behave similarly to local variables, aiding encapsulation, 
-   clarity, and code reuse within a single function body.
+   of another function in the C language. 
         
 2. Rationale
 
