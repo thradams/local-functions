@@ -1,4 +1,4 @@
-                           N3645 - Literal functions
+                           N3645 - Function literals
 
 Author : Thiago R Adams  
 Date   : 2025-07-11  
@@ -9,13 +9,16 @@ Prior art: C++ lambdas without capture
 Revision: r1
 
 REVISIONS
-   r1 - fixed cmp sample
+   r1 
+   - Fixed cmp sample,
+   - Title changed from "literal functions" to "function literals"
+
 
 ABSTRACT
 
-   This proposal introduces literal functions into the C language,
-   offering a syntax for defining functions at the point of use. Literal
-   functions allow programmers to define small, local functions  without
+   This proposal introduces function literals into the C language,
+   offering a syntax for defining functions at the point of use. Functions 
+   literals allow programmers to define small, local functions  without
    requiring separate file-scope declarations.
    
 
@@ -45,7 +48,7 @@ ABSTRACT
 
       qsort(arr, n, sizeof(int), cmp);
 
-   With literal functions, the programmer could write:
+   With functions literals, the same code can be written as:
 
       qsort(arr, 20, sizeof(int), (int (const void *a, const void *b) {
          int arg1 = *(const int*)a;
@@ -88,8 +91,7 @@ ABSTRACT
          struct { int value;  } capture = {local}; 
 
          async((void (int result, void * data)) {
-            typeof(capture)* captured = data;
-         
+            typeof(capture)* captured = data;         
          }, &capture, sizeof capture);
       }
 
@@ -121,9 +123,9 @@ ABSTRACT
  
       postfix-expression: 
          ...      
-         literal-function     
+         function-literal     
   
-      literal-function:
+      function-literal:
          ( type-name ) function-body 
  
 
@@ -131,19 +133,18 @@ ABSTRACT
 
    Note:
       The syntax is ambiguous with that of a compound literal. 
-      Disambiguation is performed based on the type: only literal 
-      functions may have a function type, whereas compound literals 
-      shall not.
+      Disambiguation is performed based on the type: only function literal 
+      may have a function type, whereas compound literals shall not.
    
    Note:
       Function-specifiers (_Noreturn, inline) and storage-class 
       specifiers (auto, constexpr, extern, register, static, 
-      thread_local, typedef) are not permitted in literal function,
+      thread_local, typedef) are not permitted in function literals,
       as their semantics are not currently defined in this context.
 
    3.2 Semantics
    
-      * The literal function is a function designator (6.3.3.1)
+      * The function literals are function designators.
       
          void main()
          {      
@@ -177,10 +178,10 @@ ABSTRACT
             }();
          }
  
-      * For literal functions, __func__ is defined following the same 
+      * In function literals, __func__ is defined following the same 
         rules as for non-literal functions. The value of __func__ is 
         an implementation-defined null-terminated string when used 
-        inside literal functions.
+        inside function literals.
 
         Note: For comparison, C++ lambdas returns "operator ()" 
 
@@ -226,11 +227,11 @@ ABSTRACT
          }
 
        * An identifier declared outside the body or parameter list of a 
-         literal function has the enclosing scope (block or file scope). 
-         An identifier declared within the parameter list of a literal 
-         function has block scope, which is the literal function body 
+         function literal has the enclosing scope (block or file scope). 
+         An identifier declared within the parameter list of a function 
+         literal has block scope, which is the function literal body 
          itself. These rules are consistent with those already in 
-         effect. See 6.2.1.
+         effect.
 
       Sample:
 
@@ -246,7 +247,7 @@ ABSTRACT
 
 4.  GENERIC FUNCTIONS
 
-   A literal function may result in the instantiation of distinct 
+   A function literals may result in the instantiation of distinct 
    functions depending on the arguments provided.  For example:
 
       #define SWAP(a, b)\
@@ -276,7 +277,7 @@ ABSTRACT
 
 5.  RATIONALY
 
-   Literal functions improve the C language without introducing new 
+   Function literals improve the C language without introducing new 
    concepts, providing more flexibility to functions and enabling a form
    of generic functions in C.
 
@@ -337,7 +338,7 @@ ABSTRACT
 
 7.  IMPLEMENTATION CONSIDERATIONS
 
-   Literal functions can be implemented by the compiler as:
+   Function literals can be implemented by the compiler as:
 
    * Anonymous 'static' functions with unique internal names.
 
@@ -345,7 +346,7 @@ ABSTRACT
 
    7.1 Recommended practice
 
-      * Identical literal functions, having the same function type and 
+      * Identical function literals, having the same function type and 
         function-body should, but they are not required, to produce the
         same function.
 
