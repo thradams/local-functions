@@ -39,7 +39,8 @@ ABSTRACT
         function-definition
  
    3.2 Semantics
-   
+
+       Local functions uses the same scope rules used by N3645 Literal functions 
    
       * Identifiers from the enclosing scope, excluding labels, 
         are visible inside the literal function.
