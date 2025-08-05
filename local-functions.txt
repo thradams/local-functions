@@ -44,7 +44,7 @@ Target audience: Implementers, users
        in N3645.
    
       * Identifiers from the enclosing scope, excluding labels, are visible inside
-        the literal function.
+        the local function scope.
 
       Samples:
 
@@ -69,7 +69,7 @@ Target audience: Implementers, users
          }
  
       * For local functions, __func__ is defined following the same 
-        rules as for non-literal functions. The value of __func__ is 
+        rules as for non-local functions. The value of __func__ is 
         an implementation-defined null-terminated string when used 
         inside local functions.
 
@@ -135,11 +135,11 @@ Target audience: Implementers, users
          }
 
        * An identifier declared outside the body or parameter list of a 
-         literal function has the enclosing scope (block or file scope). 
-         An identifier declared within the parameter list of a literal 
-         function has block scope, which is the literal function body 
+         local function has the enclosing block scope. 
+         An identifier declared within the parameter list of a local
+         function has block scope, which is the local function body 
          itself. These rules are consistent with those already in 
-         effect. See 6.2.1.
+         effect.
 
       Sample:
 
