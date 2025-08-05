@@ -1,1 +1,175 @@
 
+           NXXXX - Allow Function Definitions Inside Function Scope
+
+Author : Thiago R Adams  
+Date   : 2025-07-11  
+Project: ISO/IEC JTC 1/SC 22/WG 14  
+Title  : Allow Function Definitions Inside Function Scope
+Target audience: Implementers, users
+
+
+ABSTRACT
+
+   This proposal introduces support for defining functions inside the scope 
+   of another function in the C language. These inner functions would have 
+   lexical scope and behave similarly to local variables, aiding encapsulation, 
+   clarity, and code reuse within a single function body.
+        
+2. Rationale
+
+    C currently allows function declarations inside block scope, but not 
+    function definitions. Allowing inner function definitions would enable:
+
+    - Better organization of code.
+    - Encapsulation of helper logic that is not meaningful outside the enclosing function.
+    - Avoidance of polluting the file or translation unit with static helper functions.
+    - Complements Literal functions N3645
+
+
+   This proposal avoids introducing closures keeping semantics simple and compatible with 
+   C's execution and memory model. 
+
+
+3.  SYNTAX AND SEMANTICS
+
+   3.1 Syntax
+ 
+      block-item:
+        ...
+        function-definition
+ 
+   3.2 Semantics
+   
+   
+      * Identifiers from the enclosing scope, excluding labels, 
+        are visible inside the literal function.
+
+      Samples:
+
+         int main() {      
+            enum E {A};
+            int i = 0;
+            void f(void)
+            {
+               int j = sizeof(i); //ok
+               enum E e = A; //ok
+            }
+         }
+
+
+         int main() {      
+            L1:;
+            void f(void)
+            {
+               //error: label 'L1' used but not defined
+               goto L1; 
+            }
+         }
+ 
+      * For local functions, __func__ is defined following the same 
+        rules as for non-literal functions. The value of __func__ is 
+        an implementation-defined null-terminated string when used 
+        inside local functions.
+
+        Note: For comparison, GCC returns the function name
+
+   3.3  CONSTRAINS
+      
+      * The name of an object of automatic storage duration defined in 
+        an enclosing function shall be referenced only in discarded 
+        expressions.
+
+      Samples:
+
+         int main() {
+            int i = 0;
+            void f(void)
+            { 
+               i = 1; /*error*/ 
+            };
+         }
+
+         int main() {
+           int i = 0;
+           void f(void)
+           {
+              int j = sizeof(i);
+              /*ok*/ 
+           }
+         }
+
+         int g;
+         int main() {
+            void f(void)
+            { 
+               g = 1; /*ok*/ 
+            }
+         }
+
+         int main() {
+            int f();
+            void g()
+            {
+              f(); /*ok*/
+            }      
+         }
+
+         int main() {
+            static int i = 0;
+            void f()
+            { 
+              i = 1; /*ok*/ 
+            }
+         }
+
+      * Variably modified (VM) types defined in an enclosing scope shall
+        not be referenced
+
+         int f(int n) {
+            int ar[n];
+            void f()
+            {
+               typeof(ar) b; /*error*/ 
+            }      
+         }
+
+       * An identifier declared outside the body or parameter list of a 
+         literal function has the enclosing scope (block or file scope). 
+         An identifier declared within the parameter list of a literal 
+         function has block scope, which is the literal function body 
+         itself. These rules are consistent with those already in 
+         effect. See 6.2.1.
+
+      Sample:
+
+         int main() {
+            struct X { int i; } f (struct Y *y)
+            {
+               struct X x = {};
+               return x;
+            }
+
+           struct X x; //ok
+           struct Y y; /*error*/
+         }
+
+
+6.  COMPATIBILITY AND IMPACT
+
+   * This feature does not break any existing valid C programs.
+
+
+7 Existing implementations
+
+    Cake transpiler has an implementation that converts C2Y code to
+    C99.
+    http://thradams.com/cake/playground.html  
+
+ 
+
+8. REFERENCES
+
+   * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3550.pdf  
+   * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2661.pdf
+   * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2924.pdf
+
