@@ -87,55 +87,58 @@ Target audience: Implementers, users
 
    3.3  CONSTRAINS
       
-      * The name of an object of automatic storage duration defined in 
-        an enclosing function shall be referenced only in discarded 
-        expressions.
+      * The name of an object with automatic storage duration, declared
+        in an enclosing function and not declared with const/constexpr,
+        shall only appear in discarded expressions within a local 
+        function.
+
+      * A local function shall not evaluate an expression that yields 
+        the address of an object with automatic storage duration 
+        declared in an enclosing function, even if the object is 
+        declared const/constexpr.
 
       Samples:
 
          int main()
          {
             int i = 0;
-            void f(void)
-            { 
-               i = 1; /*error*/ 
-            };
+            void f(void) { i = 1; /*error*/ };
+         }
+
+         int main()
+         {
+            const int i = 1;
+            void f(void) { int k = i; /*ok*/ };
+         }
+         
+         int main()
+         {
+            const int i = 1;
+            void f(void) { int * p = &i; /*error*/ };
          }
 
          int main()
          {
            int i = 0;
-           void f(void)
-           {
-              int j = sizeof(i); /*ok*/ 
-           }
+           void f(void) { int j = sizeof(i); /*ok*/ }
          }
 
          int g;
          int main()
          {
-            void f(void)
-            { 
-               g = 1; /*ok*/ 
-            }
+            void f(void) { g = 1; /*ok*/ }
          }
 
          int main()
          {
             int f();
-            void g()
-            {
-              f(); /*ok*/
-            }      
+            void g() { f(); /*ok*/ }      
          }
 
          int main()
          {
             static int i = 0;
-            void f()
-            { 
-              i = 1; /*ok*/ 
-            }
+            void f() { i = 1; /*ok*/ }
          }
 
       * Variably modified (VM) types defined in an enclosing scope shall
@@ -143,10 +146,7 @@ Target audience: Implementers, users
 
          int f(int n) {
             int ar[n];
-            void f()
-            {
-               typeof(ar) b; /*error*/ 
-            }      
+            void f() { typeof(ar) b; /*error*/ }      
          }
 
        * An identifier declared outside the body or parameter list of a 
@@ -171,11 +171,45 @@ Target audience: Implementers, users
          }
 
 
-6.  COMPATIBILITY AND IMPACT
+6. COMPATIBILITY AND IMPACT
 
-   * This feature does not break any existing valid C programs.
-   * GCC nested functions provides an extension where captures
-     are allowed.
+   The syntax used by local functions is the same as that of GCC nested
+   functions, with the difference that nested functions can capture 
+   variables. In this sense, they can be considered an compiler extension 
+   of standard local functions.
+
+   When nested functions do not capture variables, both behave the same 
+   way. However, internally, GCC may still use trampolines even if variables 
+   are not captured, which are a source of security concerns, as described 
+   in N3657 "Functions with Data – Closures in C (A Comprehensive Proposal 
+   Overviewing Blocks, Nested Functions, and Lambdas)".
+   
+   For instance:
+      
+      //Use -Wtrampolines in GCC
+      #include <stdio.h>
+
+          int main() {
+          void local_without_capture() { printf("hello"); }
+          void (*f)() = local_without_capture;
+          f();
+          return 0;
+      }
+      
+   https://godbolt.org/z/G3bj36693
+
+   If programmers are looking for a guarantee that trampolines will 
+   not be generated for standard local functions — which may look 
+   identical to GCC nested functions - GCC could be adapted to 
+   ensure that nested functions without captures do not use trampolines.
+      
+   Another alternative, in case issues are found with the previous 
+   approach, is to require that local functions be declared as static, 
+   as suggested by N3654 'Accessing the Context of Nested Functions'.
+   Since GCC nested functions do not use this syntax, local functions 
+   would be distinguished from GCC nested functions by the static 
+   storage specifier.
+
 
 7. EXISTING IMPLEMENTATIONS
 
@@ -194,3 +228,9 @@ Target audience: Implementers, users
    * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2661.pdf
    * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2924.pdf
 
+   * https://gcc.gnu.org/onlinedocs/gcc/Nested-Functions.html
+
+9. ACKNOWLEDGEMENTS
+
+   I would like to recognize the following people for their help in this
+   work: Martin Uecker, Jens Gustedt.

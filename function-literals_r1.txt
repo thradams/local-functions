@@ -187,15 +187,36 @@ ABSTRACT
 
    3.3  CONSTRAINS
       
-      * The name of an object of automatic storage duration defined in 
-        an enclosing function shall be referenced only in discarded 
-        expressions.
+       Function literals use the same scope rules as those defined for 
+       local functions in NXXXX.
+
+
+      * The name of an object with automatic storage duration, declared
+        in an enclosing function and not declared with const/constexpr,
+        shall only appear in discarded expressions within a local 
+        function.
+
+      * A local function shall not evaluate an expression that yields 
+        the address of an object with automatic storage duration 
+        declared in an enclosing function, even if the object is 
+        declared const/constexpr.
 
       Samples:
 
          int main() {
             int i = 0;
-            (void(void)){ i = 1; /*error*/ }();
+            (void (void)) { i = 1; /*error*/ }();
+         }
+
+         int main() {
+            const int i = 1;
+            (void (void)) { int k = i; /*ok*/ }();
+         }
+
+
+         int main() {
+            const int i = 1;
+            (void (void)) { int *p = &i; /*error*/ }();
          }
 
          int main() {
