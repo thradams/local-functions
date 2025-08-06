@@ -40,7 +40,7 @@ Target audience: Implementers, users
       block-item:
         ...
         function-definition
-
+      
    3.2 Semantics
 
       * Local functions follow the same semantic restrictions as function 
@@ -83,6 +83,12 @@ Target audience: Implementers, users
 
    3.3  CONSTRAINS
       
+      * A local function shall not be declared with any storage-class 
+        specifier.
+      
+      * A local function shall not be declared with the function specifier 
+       'inline', but may be declared with '_Noreturn'.
+
       * The name of an object with automatic storage duration, declared
         in an enclosing function and not declared with const/constexpr,
         shall only appear in discarded expressions within a local 
