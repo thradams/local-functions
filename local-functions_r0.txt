@@ -41,14 +41,10 @@ Target audience: Implementers, users
         ...
         function-definition
 
-   Note: n3654 "Accessing the Context of Nested Functions" requires 
-   static in front of local functions. In this proposal static is 
-   optional.
-
    3.2 Semantics
 
-       Local functions use the same scope rules as those defined for 
-       function literals in N3645.
+      * Local functions follow the same semantic restrictions as function 
+        literals, as defined in N3645.
    
       * Identifiers from the enclosing scope, excluding labels, are 
         visible inside the local function scope.
@@ -153,8 +149,7 @@ Target audience: Implementers, users
          local function has the enclosing block scope. 
          An identifier declared within the parameter list of a local
          function has block scope, which is the local function body 
-         itself. These rules are consistent with those already in 
-         effect.
+         itself.These rules are consistent with those already in effect.
 
       Sample:
 
@@ -197,6 +192,8 @@ Target audience: Implementers, users
       }
       
    https://godbolt.org/z/G3bj36693
+   
+   Adding -O1 already removes the trampoline.
 
    If programmers are looking for a guarantee that trampolines will 
    not be generated for standard local functions — which may look 
