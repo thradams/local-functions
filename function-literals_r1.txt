@@ -8,11 +8,16 @@ Target audience: Implementers, users
 Prior art: C++ lambdas without capture
 Revision: r1
 
-REVISIONS
-   r1 
-   - Fixed cmp sample,
-   - "literal functions" renamed to "function literals"
-   - This proposal supersedes N3645
+SUMMARY OF CHANGES
+   
+   * N3645
+      - Fixed cmp sample
+      - "literal functions" renamed to "function literals"
+      - This proposal supersedes N3645
+
+   * N3645
+      - Original proposal
+      
 
 ABSTRACT
 
