@@ -230,7 +230,6 @@ Target audience: Implementers, users
    * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3654.pdf
    * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2661.pdf
    * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2924.pdf
-
    * https://gcc.gnu.org/onlinedocs/gcc/Nested-Functions.html
 
 9. ACKNOWLEDGEMENTS
