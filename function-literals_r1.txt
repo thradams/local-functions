@@ -149,7 +149,10 @@ ABSTRACT
 
    3.2 Semantics
    
-      * The function literals are function designators.
+      * Function literals follow the same semantic restrictions as local
+        functions, as defined in NXXXX.
+
+      * Function literals are function designators.
       
          void main()
          {      
@@ -183,18 +186,13 @@ ABSTRACT
             }();
          }
  
-      * In function literals, __func__ is defined following the same 
-        rules as for non-literal functions. The value of __func__ is 
-        an implementation-defined null-terminated string when used 
-        inside function literals.
+      * The value of __func__ is an implementation-defined 
+        null-terminated string when used inside function literals.
 
         Note: For comparison, C++ lambdas returns "operator ()" 
 
    3.3  CONSTRAINS
       
-       Function literals use the same scope rules as those defined for 
-       local functions in NXXXX.
-
 
       * The name of an object with automatic storage duration, declared
         in an enclosing function and not declared with const/constexpr,

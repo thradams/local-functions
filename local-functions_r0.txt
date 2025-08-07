@@ -24,8 +24,7 @@ Target audience: Implementers, users
     - Encapsulation of helper logic that is not meaningful  outside  the
       enclosing function.
 
-    - Avoidance of polluting the file or translation  unit  with  static 
-      helper functions.
+    - Avoidance of polluting the file scope with static functions.
 
     - Complements Function Literals N3645
 
@@ -182,7 +181,7 @@ Target audience: Implementers, users
    When nested functions do not capture variables, both behave the same 
    way. However, internally, GCC may still use trampolines even if variables 
    are not captured, which are a source of security concerns, as described 
-   in N3657 "Functions with Data – Closures in C (A Comprehensive Proposal 
+   in N3657 "Functions with Data â€“ Closures in C (A Comprehensive Proposal 
    Overviewing Blocks, Nested Functions, and Lambdas)".
    
    For instance:
@@ -202,7 +201,7 @@ Target audience: Implementers, users
    Adding -O1 already removes the trampoline.
 
    If programmers are looking for a guarantee that trampolines will 
-   not be generated for standard local functions — which may look 
+   not be generated for standard local functions â€” which may look 
    identical to GCC nested functions - GCC could be adapted to 
    ensure that nested functions without captures do not use trampolines.
       
@@ -225,14 +224,19 @@ Target audience: Implementers, users
 
 8. REFERENCES
    
-   * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3645.pdf
-   * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3657.htm
-   * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3654.pdf
-   * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2661.pdf
-   * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2924.pdf
-   * https://gcc.gnu.org/onlinedocs/gcc/Nested-Functions.html
+   * N3645 - Literal functions
+     https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3645.pdf
+   
+   * N3657 Functions with Data - Closures in C 
+     https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3657.htm
+   
+   * N3654 Accessing the Context of Nested Functions
+     https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3654.pdf
+         
+   * GCC Nested functions
+     https://gcc.gnu.org/onlinedocs/gcc/Nested-Functions.html
 
 9. ACKNOWLEDGEMENTS
 
    I would like to recognize the following people for their help in this
-   work: Martin Uecker, Jens Gustedt.
+   work: Martin Uecker, Alejandro Colomar, Jens Gustedt.
