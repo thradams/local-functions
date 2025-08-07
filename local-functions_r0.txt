@@ -1,4 +1,3 @@
-
 ---------------------- NXXXX Local functions ---------------------------
 
 Author : Thiago R Adams  
@@ -6,13 +5,16 @@ Date   : 2025-08-05
 Project: ISO/IEC JTC 1/SC 22/WG 14  
 Title  : Local functions
 Target audience: Implementers, users
+Prior art: GCC Nested functions without capture
 
-1.  ABSTRACT
+
+
+ABSTRACT
 
    This proposal introduces support for defining functions inside the 
    scope of another function in the C language. 
         
-2. RATIONALE
+1.  INTRODUCTION
 
     C currently allows function declarations inside block scope, but not 
     function definitions. 
@@ -29,21 +31,21 @@ Target audience: Implementers, users
     - Complements Function Literals N3645
 
    Following the same principles as N3645, this proposal avoids 
-   introducing closures, keeping the semantics  simple   and  compatible 
-   with C's execution and memory model.
+   introducing closures (captures), keeping the semantics  simple and
+   compatible with C's execution and memory model.
 
-3. SYNTAX AND SEMANTICS
+2. SYNTAX AND SEMANTICS
 
-   3.1 Syntax
+   2.1 Syntax
  
       block-item:
         ...
         function-definition
       
-   3.2 Semantics
+   2.2 Semantics
 
-      * Local functions follow the same semantic restrictions as function 
-        literals, as defined in N3645.
+      * Local functions have semantics similar to those of function 
+        literals, as described in N3645.
    
       * Identifiers from the enclosing scope, excluding labels, are 
         visible inside the local function scope.
@@ -72,15 +74,8 @@ Target audience: Implementers, users
             }
          }
  
-      * For local functions, __func__ is defined following the same 
-        rules as for non-local functions. The value of __func__ is an
-        implementation-defined null-terminated string when used inside
-        local functions.
 
-        Note: For comparison, GCC nested function returns the function
-        name
-
-   3.3  CONSTRAINS
+   3  CONSTRAINS
       
       * A local function shall not be declared with any storage-class 
         specifier.
@@ -198,7 +193,7 @@ Target audience: Implementers, users
       
    https://godbolt.org/z/G3bj36693
    
-   Adding -O1 already removes the trampoline.
+   (Adding -O1 already removes the trampoline)
 
    If programmers are looking for a guarantee that trampolines will 
    not be generated for standard local functions — which may look 
@@ -215,25 +210,23 @@ Target audience: Implementers, users
 
 7. EXISTING IMPLEMENTATIONS
 
-    GCC nested functions without capturing variables.
-
-    Cake transpiler has an implementation that converts C2Y 
-    code to C99. (Missing some constrains, like usage of VM types)
-
-    http://thradams.com/cake/playground.html  
+    - GCC nested functions without capturing variables.
+    
+    - Cake http://thradams.com/cake/playground.html  
+      (Missing some details like VM types)
 
 8. REFERENCES
    
    * N3645 - Literal functions
      https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3645.pdf
    
-   * N3657 Functions with Data - Closures in C 
+   * N3657 - Functions with Data - Closures in C 
      https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3657.htm
    
-   * N3654 Accessing the Context of Nested Functions
+   * N3654 - Accessing the Context of Nested Functions
      https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3654.pdf
          
-   * GCC Nested functions
+   * GCC - Nested functions
      https://gcc.gnu.org/onlinedocs/gcc/Nested-Functions.html
 
 9. ACKNOWLEDGEMENTS

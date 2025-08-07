@@ -6,14 +6,14 @@ Project: ISO/IEC JTC 1/SC 22/WG 14
 Title  : Function literals
 Target audience: Implementers, users
 Prior art: C++ lambdas without capture
-Revision: r1
+
 
 SUMMARY OF CHANGES
    
-   * N3645
+   * NXXXX
       - Fixed cmp sample
       - "literal functions" renamed to "function literals"
-      - This proposal supersedes N3645
+      - constants can be captured
 
    * N3645
       - Original proposal
@@ -43,7 +43,7 @@ ABSTRACT
 
    Many standard C library functions (e.g., 'qsort', 'thrd_create') and
    common APIs rely on callbacks.  Today, using them requires extra 
-   boilerplate, especially for asynchronous callbacks.
+   boilerplate code, especially for asynchronous callbacks.
    
       static int cmp(const void *a, const void *b) {
          int arg1 = *(const int*)a;
@@ -64,7 +64,9 @@ ABSTRACT
    Asynchronous callbacks would have a huge improvement in clarity. 
    Consider this sample:
 
-      void async(void (*callback)(int result, void * data), void * data, size_t datasize);
+      void async(void (*callback)(int result, void * data),
+                 void * data,
+                 size_t datasize);
       
       struct capture { int value; };
                 
@@ -101,8 +103,8 @@ ABSTRACT
       }
 
 
-   The function and its capture are defined together, making the void* 
-   cast safe.
+   The function and its capture are defined together, improving safety when
+   casting void*.
 
    Sample using thrd_create
 
@@ -149,8 +151,9 @@ ABSTRACT
 
    3.2 Semantics
    
-      * Function literals follow the same semantic restrictions as local
-        functions, as defined in NXXXX.
+     * function literals have semantics similar to those of local 
+       functions, as described in NXXXX.
+
 
       * Function literals are function designators.
       
@@ -191,7 +194,7 @@ ABSTRACT
 
         Note: For comparison, C++ lambdas returns "operator ()" 
 
-   3.3  CONSTRAINS
+   4.  CONSTRAINS
       
 
       * The name of an object with automatic storage duration, declared
@@ -269,9 +272,9 @@ ABSTRACT
            struct Y y; /*error*/
          }
 
-4.  GENERIC FUNCTIONS
+5.  GENERIC FUNCTIONS
 
-   A function literals may result in the instantiation of distinct 
+   Function literals may result in the instantiation of distinct 
    functions depending on the arguments provided.  For example:
 
       #define SWAP(a, b)\
@@ -283,6 +286,10 @@ ABSTRACT
          int a = 1;
          int b = 2;
          SWAP(a, b);
+
+         double da = 1.0;
+         double db = 2.0;
+         SWAP(da, db);
       }
 
 
@@ -296,16 +303,16 @@ ABSTRACT
       struct X { const int i; };
 
       int main() {
-         auto p2 = NEW((struct X) {});
+         auto p2 = NEW((struct X) { .i = 123 });
       }         
 
-5.  RATIONALY
+6.  RATIONALY
 
    Function literals improve the C language without introducing new 
    concepts, providing more flexibility to functions and enabling a form
    of generic functions in C.
 
-   5.1  Why not C++ lambdas syntax?
+   6.1  Why not C++ lambdas syntax?
    
       Maintaining the existing C grammar is the safest option, as it 
       ensures that function literal syntax stays in sync with function
@@ -334,33 +341,27 @@ ABSTRACT
       possible in both directions, from C to C++ and from C++ to C,
       when captureless lambdas are used.
 
-   5.2  Why not having captures like C++ lambdas?
+   6.2  Why not having captures like C++ lambdas?
 
       When lambdas were introduced in C++, the language already included
       the necessary infrastructure for capturing such as exceptions, 
-      constructors, destructors, and function objects.  In contrast, C 
-      lacks these features.
+      constructors, destructors, virtual functions and function objects.
+      In contrast, C lacks these features.
    
-      Low-level alternatives in C would conflict with existing available 
-      patterns, while high-level abstractions might require introducing
-      new concepts that may not fit well in C.
+      Alternatives that gives full controls or how data is captured, 
+      would conflict with existing available patterns, while 
+      high-level abstractions might require introducing new concepts 
+      like "callable objects" that may not fit well in C.
 
-      Automatic capture of constexpr objects, or constant objects 
-      declared with the register storage-qualifier, from the other 
-      scope were considered. This limitation can be removed in the 
-      future if necessary.
-      
-      Note: For comparison, C++ lambdas without captures can use 
-      constexpr objects, provided their addresses are not taken.
 
-6.  COMPATIBILITY AND IMPACT
+7.  COMPATIBILITY AND IMPACT
 
    * This feature does not break any existing valid C programs, since
      compound literal objects of type function cannot be created in the
      current C version. 
 
 
-7.  IMPLEMENTATION CONSIDERATIONS
+8.  IMPLEMENTATION CONSIDERATIONS
 
    Function literals can be implemented by the compiler as:
 
@@ -368,28 +369,29 @@ ABSTRACT
 
    * Emission of a unique function symbol in the object file.
 
-   7.1 Recommended practice
+   8.1 Recommended practice
 
-      * Identical function literals, having the same function type and 
-        function-body should, but they are not required, to produce the
-        same function.
+      * Identical generated function literals should, but they are not
+        required, to produce the same function.
 
-   7.1 Existing implementations
+   8.1 Existing implementations
 
-      Cake transpiler has an implementation that converts C2Y code to
-      C99.
-      http://thradams.com/cake/playground.html  
+      * Cake transpiler http://thradams.com/cake/playground.html  
 
-      C++ lambda expressions without captures serve as prior art for 
-      this feature, albeit with some differences.
+      * C++ lambda expressions without captures
 
-8. REFERENCES
+9. REFERENCES
 
-   * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3550.pdf  
-   * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2661.pdf
-   * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2924.pdf
+   * ISO/IEC 9899:202y (en) — N3550 working draft
+     https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3550.pdf  
+   
+   * N2661 Nested Functions
+     https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2661.pdf
 
-9. ACKNOWLEDGEMENTS
+   * N2924 Type-generic lambdas
+     https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2924.pdf
+
+10. ACKNOWLEDGEMENTS
 
    I would like to recognize the following people for their help in this
    work: Joseph Myers, Martin Uecker, Jens Gustedt.
