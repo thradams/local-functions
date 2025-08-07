@@ -26,8 +26,6 @@ ABSTRACT
     - Encapsulation of helper logic that is not meaningful  outside  the
       enclosing function.
 
-    - Avoidance of polluting the file scope with static functions.
-
     - Complements Function Literals N3645
 
    Following the same principles as N3645, this proposal avoids 
