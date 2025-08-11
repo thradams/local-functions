@@ -1,4 +1,4 @@
----------------------- n3679 Function literals -------------------------
+---------------------- N3679 Function literals -------------------------
 
 Author : Thiago R Adams  
 Date   : 2025-08-05  
@@ -10,7 +10,7 @@ Prior art: C++ lambdas without capture
 
 SUMMARY OF CHANGES
    
-   * NXXXX
+   * N3679 
       - Fixed cmp sample
       - "literal functions" renamed to "function literals"
       - constants can be captured
