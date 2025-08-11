@@ -1,4 +1,4 @@
----------------------- N3645 Function literals -------------------------
+---------------------- n3679 Function literals -------------------------
 
 Author : Thiago R Adams  
 Date   : 2025-08-05  
@@ -382,7 +382,7 @@ ABSTRACT
 
 9. REFERENCES
 
-   * ISO/IEC 9899:202y (en) — N3550 working draft
+   * ISO/IEC 9899:202y (en) Â— N3550 working draft
      https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3550.pdf  
    
    * N2661 Nested Functions
