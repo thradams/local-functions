@@ -17,32 +17,31 @@ SUMMARY OF CHANGES
 
    * N3645
       - Original proposal
-      
+       
 
 ABSTRACT
 
-   This proposal introduces function literals into the C language,
-   offering a syntax for defining functions at the point of use. 
-   Functions literals allow programmers to define small, local functions  
-   without requiring separate file-scope declarations.
-   
+   This  proposal  introduces  function  literals  into  the  C language,
+   offering  a  syntax  for  defining  functions  at  the  point  of use.
+   Functions  literals allow programmers to define small, local functions
+   without requiring separate file-scope declarations. 
 
 1.  INTRODUCTION
 
-   C currently lacks a mechanism to define functions at the point of 
-   usage which leads to:
+       
+   C  currently  lacks  a  mechanism  to define functions at the point of
+   usage which leads to:                                                 
 
-   -    Reduced code locality, forcing readers to jump between unrelated 
-        parts of a source file.
+   -  Reduced  code  locality,  forcing readers to jump between unrelated
+   parts of a source file.                                               
 
-   -    The file scope may become cluttered with functions and 
-        associated struct declarations used to support captures.
-        
+   -  The  file  scope may become cluttered with functions and associated
+   struct declarations used to support captures.      
 
 2.  MOTIVATION
 
-   Many standard C library functions (e.g., 'qsort', 'thrd_create') and
-   common APIs rely on callbacks.  Today, using them requires extra 
+   Many  standard  C library functions (e.g., 'qsort', 'thrd_create') and
+   common  APIs  rely  on  callbacks.  Today,  using  them requires extra
    boilerplate code, especially for asynchronous callbacks.
    
       static int cmp(const void *a, const void *b) {
@@ -81,14 +80,14 @@ ABSTRACT
          async(async_complete, &capture, sizeof capture);
       }
 
-   Given the current state of the language, the function async_complete,
-   which is used only once, must be declared at file scope.  Since it 
-   uses the struct capture, that struct also needs to be declared at 
-   file scope.
+   Given  the current state of the language, the function async_complete,
+   which is used only once, must be declared at file scope. Since it uses
+   the  struct  capture,  that  struct  also needs to be declared at file
+   scope.                                                                
 
-   With the introduction of function literals, we can declare the struct
-   capture and async_complete (that does not need a name anymore) inside
-   the local scope.
+   With  the introduction of function literals, we can declare the struct
+   capture  and async_complete (that does not need a name anymore) inside
+   the local scope. 
 
       void async(void (*callback)(int result, void* data), void * data, size_t datasize);
 
@@ -102,10 +101,8 @@ ABSTRACT
          }, &capture, sizeof capture);
       }
 
-
-   The function and its capture are defined together, improving safety when
-   casting void*.
-
+   The  function  and  its capture are defined together, improving safety
+   when casting void*. 
    Sample using thrd_create
 
       int main()
@@ -139,20 +136,21 @@ ABSTRACT
    * The type-name shall have a function type. 
 
    Note:
-      The syntax is ambiguous with that of a compound literal. 
-      Disambiguation is performed based on the type: only function literal 
-      may have a function type, whereas compound literals shall not.
+      The   syntax   is  ambiguous  with  that  of  a  compound  literal.
+      Disambiguation  is  performed  based  on  the  type:  only function
+      literal  may  have a function type, whereas compound literals shall
+      not.
    
    Note:
-      Function-specifiers (_Noreturn, inline) and storage-class 
-      specifiers (auto, constexpr, extern, register, static, 
-      thread_local, typedef) are not permitted in function literals,
-      as their semantics are not currently defined in this context.
+      Function-specifiers    (_Noreturn,    inline)   and   storage-class
+      specifiers    (auto,    constexpr,    extern,   register,   static,
+      thread_local,  typedef)  are not permitted in function literals, as
+      their semantics are not currently defined in this context. 
 
    3.2 Semantics
    
-     * function literals have semantics similar to those of local 
-       functions, as described in NXXXX.
+      * function  literals  have  semantics  similar  to  those  of local
+        functions, as described in N3678.
 
 
       * Function literals are function designators.
@@ -166,8 +164,8 @@ ABSTRACT
          }
 
    
-      * Identifiers from the enclosing scope, excluding labels, 
-        are visible inside the literal function.
+      * Identifiers  from  the  enclosing  scope,  excluding labels,  are
+        visible inside the literal function.  
 
       Samples:
 
@@ -189,7 +187,7 @@ ABSTRACT
             }();
          }
  
-      * The value of __func__ is an implementation-defined 
+      * The    value    of    __func__   is   an   implementation-defined
         null-terminated string when used inside function literals.
 
         Note: For comparison, C++ lambdas returns "operator ()" 
@@ -197,15 +195,15 @@ ABSTRACT
    4.  CONSTRAINS
       
 
-      * The name of an object with automatic storage duration, declared
-        in an enclosing function and not declared with const/constexpr,
-        shall only appear in discarded expressions within a local 
+      * The  name  of an object with automatic storage duration, declared
+        in  an  enclosing function and not declared with const/constexpr,
+        shall  only  appear  in  discarded  expressions  within  a  local
         function.
 
-      * A local function shall not evaluate an expression that yields 
-        the address of an object with automatic storage duration 
-        declared in an enclosing function, even if the object is 
-        declared const/constexpr.
+      * A  local  function  shall  not evaluate an expression that yields
+        the address of an object with automatic storage duration declared
+        in  an  enclosing  function,  even  if  the  object  is  declared
+        const/constexpr.
 
       Samples:
 
@@ -253,12 +251,11 @@ ABSTRACT
             (void ()){ typeof(ar) b; /*error*/ }();      
          }
 
-       * An identifier declared outside the body or parameter list of a 
-         function literal has the enclosing scope (block or file scope). 
-         An identifier declared within the parameter list of a function 
-         literal has block scope, which is the function literal body 
-         itself. These rules are consistent with those already in 
-         effect.
+      * An  identifier  declared  outside the body or parameter list of a
+        function  literal  has the enclosing scope (block or file scope).
+        An  identifier  declared  within the parameter list of a function
+        literal  has  block  scope,  which  is  the function literal body
+        itself. These rules are consistent with those already in effect. 
 
       Sample:
 
@@ -274,8 +271,9 @@ ABSTRACT
 
 5.  GENERIC FUNCTIONS
 
-   Function literals may result in the instantiation of distinct 
-   functions depending on the arguments provided.  For example:
+   Function   literals  may  result  in  the  instantiation  of  distinct
+   functions depending on the arguments provided. 
+   For example:  
 
       #define SWAP(a, b)\
        (void (typeof(a)* arg1, typeof(b)* arg2)) { \
@@ -308,14 +306,14 @@ ABSTRACT
 
 6.  RATIONALY
 
-   Function literals improve the C language without introducing new 
-   concepts, providing more flexibility to functions and enabling a form
-   of generic functions in C.
+   Function  literals  improve  the  C  language  without introducing new
+   concepts,  providing more flexibility to functions and enabling a form
+   of generic functions in C.          
 
    6.1  Why not C++ lambdas syntax?
    
-      Maintaining the existing C grammar is the safest option, as it 
-      ensures that function literal syntax stays in sync with function
+      Maintaining  the  existing  C  grammar  is the safest option, as it
+      ensures  that  function  literal syntax stays in sync with function
       declarations and naturally preserves compatible scope rules
 
       Consider this sample:
@@ -328,37 +326,37 @@ ABSTRACT
            struct X x = {}; /*ok*/
          }
 
-      The scope rules for the visibility of struct X are the same as 
-      those for functions. With the C++ lambda syntax, the return type
-      would be specified after the parameter scope, which could 
-      interfere with scope handling or complicate the implementation.
+      The  scope  rules  for  the  visibility of struct X are the same as
+      those  for  functions.  With the C++ lambda syntax, the return type
+      would be specified after the parameter scope, which could interfere
+      with scope handling or complicate the implementation.              
 
-      This design also leaves room for alternative capture models that
-      do not follow the C++ approach. Having different models with the
-      same syntax could be confusing for users.
-      
-      Interoperability using a pair of pointer to function + data is 
-      possible in both directions, from C to C++ and from C++ to C,
-      when captureless lambdas are used.
+      This design also leaves room for alternative capture models that do
+      not  follow the C++ approach. Having different models with the same
+      syntax could be confusing for users.                               
+
+      Interoperability  using  a  pair  of  pointer to function + data is
+      possible  in both directions, from C to C++ and from C++ to C, when
+      captureless lambdas are used. 
 
    6.2  Why not having captures like C++ lambdas?
 
-      When lambdas were introduced in C++, the language already included
-      the necessary infrastructure for capturing such as exceptions, 
-      constructors, destructors, virtual functions and function objects.
-      In contrast, C lacks these features.
-   
-      Alternatives that gives full controls or how data is captured, 
-      would conflict with existing available patterns, while 
-      high-level abstractions might require introducing new concepts 
-      like "callable objects" that may not fit well in C.
+      When  lambdas were introduced in C++, the language already included
+      the  necessary  infrastructure  for  capturing  such as exceptions,
+      constructors,  destructors, virtual functions and function objects.
+      In contrast, C lacks these features.                               
+
+      Alternatives  that  gives  full  controls  or how data is captured,
+      would  conflict  with existing available patterns, while high-level
+      abstractions  might require introducing new concepts like "callable
+      objects" that may not fit well in C.                  
 
 
 7.  COMPATIBILITY AND IMPACT
 
-   * This feature does not break any existing valid C programs, since
-     compound literal objects of type function cannot be created in the
-     current C version. 
+      * This  feature does not break any existing valid C programs, since
+        compound  literal  objects  of type function cannot be created in
+        the current C version.
 
 
 8.  IMPLEMENTATION CONSIDERATIONS
@@ -376,9 +374,12 @@ ABSTRACT
 
    8.1 Existing implementations
 
-      * Cake transpiler http://thradams.com/cake/playground.html  
 
       * C++ lambda expressions without captures
+      
+      * Cake transpiler http://thradams.com/cake/playground.html  
+        (not a production compiler)
+
 
 9. REFERENCES
 
@@ -393,5 +394,5 @@ ABSTRACT
 
 10. ACKNOWLEDGEMENTS
 
-   I would like to recognize the following people for their help in this
-   work: Joseph Myers, Martin Uecker, Jens Gustedt.
+   I  would like to recognize the following people for their help in this
+   work: Joseph Myers, Martin Uecker, Jens Gustedt. 
