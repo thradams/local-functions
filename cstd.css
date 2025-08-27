@@ -1,5 +1,5 @@
 :root {
-    color-scheme: light dark;
+    color-scheme: light;
 }
 
 body {
@@ -68,3 +68,11 @@ pre {
     }
 }
 
+ins {
+    color: green;
+    text-decoration: none;
+}
+del {
+    color: red;
+    text-decoration: line-through;
+}

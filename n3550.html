@@ -19073,7 +19073,9 @@
   <pre>
     declaration
     unlabeled-statement
-    label</pre>
+    label
+    <ins>local-function-definition</ins>
+</pre>
   <p>
     Semantics
   </p>
@@ -56171,7 +56173,19 @@
   <pre>
     declaration
     unlabeled-statement
-    label</pre>
+    label
+    <ins>local-function-definition</ins>
+  </pre>
+
+  <ins>
+  <p>
+    (<a href="#x.x.x">x.x.x</a>) local-function-definition:
+  </p>
+  <pre>
+    attribute-specifier-sequenceopt declaration-specifiers declarator function-body
+  </pre>
+</ins>
+
   <p>
     (<a href="#6.8.4">6.8.4</a>) expression-statement:
   </p>
