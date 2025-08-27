@@ -1,0 +1,70 @@
+:root {
+    color-scheme: light dark;
+}
+
+body {
+    background-color: light-dark(#ffffff, #101010);
+    color: light-dark(#000000, #efefec);
+    margin-left: 3em;
+}
+
+aside {
+    display: inline;
+    float: left;
+    margin-left: calc(-1ex - 3em);
+    position: relative;
+    text-align: right;
+    width: 3em;
+}
+
+pre {
+    /* Colours picked from the PDF */
+    background: light-dark(#F8F8F8, #070707);
+    border: 1px solid #808080;
+    min-width: 800px;
+    width: min-content;
+    padding-right: 1em;
+}
+
+.footnote {
+    font-size: smaller;
+    position: relative;
+    top: -0.4em;
+    vertical-align: baseline;
+}
+
+.footnotetext {
+    font-size: smaller;
+    padding-left: 1em;
+}
+
+.notestart, .examplestart {
+    padding-right: 10px;
+}
+
+.notestart, .note {
+    font-size: 90%;
+}
+
+#disclaimer {
+    float: top;
+    background-color: light-dark(#f1f1f1, #1e1e1e);
+    border-radius: 15px;
+    margin: 10px;
+    margin-left: calc(18px - 3em);
+    overflow: hidden;
+    padding: 20px;
+    text-align: center;
+}
+
+    #disclaimer br {
+        display: block;
+        margin: 10px 0;
+    }
+
+@media screen and (max-width: 850px) { /* original is ~800px, add 3em... */
+    br {
+        display: none;
+    }
+}
+
