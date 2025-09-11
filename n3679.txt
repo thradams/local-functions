@@ -12,40 +12,32 @@ SUMMARY OF CHANGES
    
    * N3679 
       - "literal functions" renamed to "function literals"
-
+      - fixed qsort sample, removed sample thrd_create
 
    * N3645
       - Original proposal
 
 ABSTRACT
 
-   This proposal introduces functions literals into the C language,
-   offering a syntax for defining functions at the point of use. Literal
-   functions allow programmers to define small, local functions  without
-   requiring separate file-scope declarations.
-   
-
-1.  INTRODUCTION
-
-   C currently lacks a mechanism to define functions at the point of 
-   usage which leads to:
-
-   -    Reduced code locality, forcing readers to jump between unrelated 
-        parts of a source file.
-
-   -    The file scope may become cluttered with functions and 
-        associated struct declarations used to support captures.
-        
+   This  proposal  introduces  function  literals  into  the  C language,
+   providing  a  syntax  for  defining functions within expressions. This
+   feature  is  particularly  useful for creating callbacks, which is the
+   primary motivation for the proposal. 
+  
 
 2.  MOTIVATION
 
-   Many standard C library functions (e.g., 'qsort', 'thrd_create') and
-   common APIs rely on callbacks.  Today, using them requires extra 
-   boilerplate, especially for asynchronous callbacks.
+   Many  standard  C library functions (e.g., 'qsort', 'thrd_create') and
+   common  APIs  rely  on  callbacks.  Today,  using  them requires extra
+   boilerplate, especially for asynchronous callbacks. 
    
+   Consider this usage of qsort:
+
       static int cmp(const void *a, const void *b) 
       {
-         return (*(const int*)a - *(const int*)b);
+           int arg1 = *(const int*)a;
+           int arg2 = *(const int*)b; 
+           return (arg1 > arg2) - (arg1 < arg2);
       }
 
       qsort(arr, n, sizeof(int), cmp);
@@ -54,34 +46,45 @@ ABSTRACT
 
       qsort(arr, 20, sizeof(int), (int (const void *a, const void *b) 
       {
-         return (*(const int*)a - *(const int*)b);
+         int arg1 = *(const int*)a;
+         int arg2 = *(const int*)b; 
+         return (arg1 > arg2) - (arg1 < arg2);
       });
+   
+   However,  qsort  is not the best example, since the integer comparison
+   function  could  be declared at file scope and used in other contexts.
+   Asynchronous  callbacks,  on  the  other  hand,  have   a  significant
+   improvement in clarity    
 
-   Asynchronous callbacks would have a huge improvement in clarity. 
    Consider this sample:
 
-      void async(void (*callback)(int result, void * data), void * data);
+      void async(
+                 void (*callback)(int result, void * data),
+                 void * data
+                 );
       
       struct capture { int value; };
                 
-      static void async_complete(int result, void * data) {
+      static void main_async_complete(int result, void * data) {
          struct capture * capture = data;
          free(capture);
       }
       
       int main() {
          struct capture * capture = calloc(1, sizeof * capture); 
-         async(async_complete, capture);
+         async(main_async_complete, capture);
       }
 
-   Given the current state of the language, the function async_complete,
-   which is used only once, must be declared at file scope.  Since it 
-   uses the struct capture, that struct also needs to be declared at 
-   file scope.
+   Given    the   current   state   of   the   language,   the   function
+   main_async_complete,  which  is  used only once and is specific to the
+   context in which it is called in main, must be declared at file scope.
+   Since  it uses the struct capture, which is also tied to that specific
+   callback  in  that  particular  context,  the  struct must likewise be
+   declared at file scope .
 
-   With the introduction of function literals, we can declare the struct
-   capture and async_complete (that does not need a name anymore) inside
-   the local scope.
+   With  the introduction of function literals, we can declare the struct
+   capture  and  main_async_complete  (that does not need a name anymore)
+   inside the local scope.   
 
       void async(void (*callback)(int result, void* data), void * data);
 
@@ -97,22 +100,6 @@ ABSTRACT
          }, capture);
       }
 
-   Sample using thrd_create
-
-      int main()
-      {
-         thrd_t t;
-
-         int r = thrd_create(&t, (int (void * data)) {
-            printf("Hello world!\n");
-            return 0;
-         }, NULL);
-  
-         if (r == thrd_success)
-            thrd_join(t, NULL);
-         
-         return 0;
-      }
 
 3.  SYNTAX AND SEMANTICS
 
@@ -120,29 +107,28 @@ ABSTRACT
  
       postfix-expression: 
          ...      
-         literal-function     
+         function-literal     
   
-      literal-function:
+      function-literal:
          ( type-name ) function-body 
  
 
    * The type-name shall have a function type. 
 
-   Note:
-      The syntax is ambiguous with that of a compound literal. 
-      Disambiguation is performed based on the type: only literal 
-      functions may have a function type, whereas compound literals 
-      shall not.
-   
-   Note:
-      Function-specifiers (_Noreturn, inline) and storage-class 
-      specifiers (auto, constexpr, extern, register, static, 
-      thread_local, typedef) are not permitted in function literals,
-      as their semantics are not currently defined in this context.
+      Note:                                                              
+      The   syntax   is  ambiguous  with  that  of  a  compound  literal.
+      Disambiguation  is  based  on  the  type:  function literals have a
+      function type, whereas compound literals do not. 
+
+      Note:                                                              
+      Function-specifiers    (_Noreturn,    inline)   and   storage-class
+      specifiers    (auto,    constexpr,    extern,   register,   static,
+      thread_local,  typedef)  are not permitted in function literals, as
+      their semantics are not currently defined in this context. 
 
    3.2 Semantics
    
-      * The function literal is a function designator (6.3.3.1)
+      * The function literal is a function designator. 
       
          void main()
          {      
@@ -182,12 +168,9 @@ ABSTRACT
         inside function literals.
 
         Note: For comparison, C++ lambdas returns "operator ()" 
-
-   3.3  CONSTRAINS
       
-      * The name of an object of automatic storage duration defined in 
-        an enclosing function shall be referenced only in discarded 
-        expressions.
+      * Function literals cannot access objects from the enclosing function 
+        within their body. This includes VM types.
 
       Samples:
 
@@ -216,20 +199,19 @@ ABSTRACT
             (void ()){ i = 1; /*ok*/ }();      
          }
 
-      * Variably modified (VM) types defined in an enclosing scope shall
-        not be referenced
+       VM type sample:
 
          int f(int n) {
             int ar[n];
             (void ()){ typeof(ar) b; /*error*/ }();      
          }
 
-       * An identifier declared outside the body or parameter list of a 
-         function literals has the enclosing scope (block or file scope). 
-         An identifier declared within the parameter list of a literal 
-         function has block scope, which is the function literal body 
-         itself. These rules are consistent with those already in 
-         effect. See 6.2.1.
+       * A type declared in the result of a function literal has the enclosing scope, either block 
+         or file scope.
+
+         A type declared within the parameter list of a function literal has block scope, 
+         which is the function literal body  itself. 
+         
 
       Sample:
 
@@ -275,7 +257,7 @@ ABSTRACT
 
 5.  RATIONALY
 
-   Literal functions improve the C language without introducing new 
+   Functions literals improve the C language without introducing new 
    concepts, providing more flexibility to functions and enabling a form
    of generic functions in C.
 
