@@ -25,36 +25,11 @@ ABSTRACT
    primary motivation for the proposal. 
   
 
-2.  MOTIVATION
+1.  MOTIVATION
 
    Many  standard  C library functions (e.g., 'qsort', 'thrd_create') and
    common  APIs  rely  on  callbacks.  Today,  using  them requires extra
    boilerplate, especially for asynchronous callbacks. 
-   
-   Consider this usage of qsort:
-
-      static int cmp(const void *a, const void *b) 
-      {
-           int arg1 = *(const int*)a;
-           int arg2 = *(const int*)b; 
-           return (arg1 > arg2) - (arg1 < arg2);
-      }
-
-      qsort(arr, n, sizeof(int), cmp);
-
-   With function literals the programmer could write:
-
-      qsort(arr, 20, sizeof(int), (int (const void *a, const void *b) 
-      {
-         int arg1 = *(const int*)a;
-         int arg2 = *(const int*)b; 
-         return (arg1 > arg2) - (arg1 < arg2);
-      });
-   
-   However,  qsort  is not the best example, since the integer comparison
-   function  could  be declared at file scope and used in other contexts.
-   Asynchronous  callbacks,  on  the  other  hand,  have   a  significant
-   improvement in clarity    
 
    Consider this sample:
 
@@ -98,12 +73,11 @@ ABSTRACT
             struct capture * p = capture;
             free(p);
          }, capture);
-      }
+      }  
 
+2.  SYNTAX AND SEMANTICS
 
-3.  SYNTAX AND SEMANTICS
-
-   3.1 Syntax
+   2.1 Syntax
  
       postfix-expression: 
          ...      
@@ -113,22 +87,21 @@ ABSTRACT
          ( type-name ) function-body 
  
 
-   * The type-name shall have a function type. 
+   The   syntax   is   ambiguous   with   that  of  a  compound  literal.
+   Disambiguation is based on the type: function literals have a function
+   type, whereas compound literals do not.                               
 
-      Note:                                                              
-      The   syntax   is  ambiguous  with  that  of  a  compound  literal.
-      Disambiguation  is  based  on  the  type:  function literals have a
-      function type, whereas compound literals do not. 
+   Function-specifiers  (_Noreturn,  inline) and storage-class specifiers
+   (auto, constexpr, extern, register, static, thread_local, typedef) are
+   not  permitted  in  function  literals,  as  their  semantics  are not
+   currently defined in this context.
 
-      Note:                                                              
-      Function-specifiers    (_Noreturn,    inline)   and   storage-class
-      specifiers    (auto,    constexpr,    extern,   register,   static,
-      thread_local,  typedef)  are not permitted in function literals, as
-      their semantics are not currently defined in this context. 
 
-   3.2 Semantics
+   2.2 Semantics
    
-      * The function literal is a function designator. 
+   The  function  literal is a function designator. For instance, talking
+   the  address  of  a  function  literal  will return the address of the
+   function. 
       
          void main()
          {      
@@ -139,8 +112,8 @@ ABSTRACT
          }
 
    
-      * Identifiers from the enclosing scope, excluding labels, 
-        are visible inside the function literal.
+   Identifiers  from  the  enclosing scope, excluding labels, are visible
+   inside the function literal.  
 
       Samples:
 
@@ -162,70 +135,79 @@ ABSTRACT
             }();
          }
  
-      * For function literals, __func__ is defined following the same 
-        rules as for non functions literals. The value of __func__ is 
-        an implementation-defined null-terminated string when used 
-        inside function literals.
-
-        Note: For comparison, C++ lambdas returns "operator ()" 
+    The  value  of  __func__  is an implementation-defined null-terminated
+    string when used inside function literals. For comparison, C++ lambdas
+    returns "operator ()".
       
-      * Function literals cannot access objects from the enclosing function 
-        within their body. This includes VM types.
+    Function  literals cannot access the storage of objects with automatic
+    storage  duration or VM types from the enclosing function within their
+    function-body.    
 
-      Samples:
+    Samples:
 
-         int main() {
-            int i = 0;
-            (void(void)){ i = 1; /*error*/ }();
-         }
+      int main() {
+         int i = 0;
+         (void(void)){ i = 1; /*error*/ }();
+      }
 
-         int main() {
-           int i = 0;
-           (void(void)){ int j = sizeof(i); /*ok*/ }();
-         }
+      int main() {
+        int i = 0;
+        (void(void)){ int j = sizeof(i); /*ok*/ }();
+      }
 
-         int g;
-         int main() {
-            (void(void)){ g = 1; /*ok*/ }();
-         }
+      int g;
+      int main() {
+         (void(void)){ g = 1; /*ok*/ }();
+      }
 
-         int main() {
-            int f();
-            (void ()){ f(); /*ok*/}();      
-         }
+      int main() {
+         int f();
+         (void ()){ f(); /*ok*/}();      
+      }
 
-         int main() {
-            static int i = 0;
-            (void ()){ i = 1; /*ok*/ }();      
-         }
+      int main() {
+         static int i = 0;
+         (void ()){ i = 1; /*ok*/ }();      
+      }
 
-       VM type sample:
+ 
+      int f(int n) {
+         int ar[n];
+         (void ()){ typeof(ar) b; /*error*/ }();      
+      }
+   
 
-         int f(int n) {
-            int ar[n];
-            (void ()){ typeof(ar) b; /*error*/ }();      
-         }
+   A  type declared in the result of a function literal has the enclosing
+   scope, either block or file scope.                                    
 
-       * A type declared in the result of a function literal has the enclosing scope, either block 
-         or file scope.
+   A  type  declared  within the parameter list of a function literal has
+   block scope, which is the function literal body itself.
 
-         A type declared within the parameter list of a function literal has block scope, 
-         which is the function literal body  itself. 
-         
+   Sample:
 
-      Sample:
+      int main() {
+         (struct X { int i; } (struct Y *y)) {
+            struct X x = {};
+            return x;
+         }(nullptr);
 
-         int main() {
-            (struct X { int i; } (struct Y *y)) {
-               struct X x = {};
-               return x;
-            }(nullptr);
+        struct X x; //ok
+        struct Y y; /*error*/
+      }
 
-           struct X x; //ok
-           struct Y y; /*error*/
-         }
+      void f(int n) {
 
-4.  GENERIC FUNCTIONS
+         int a[n];
+         int (*aa)[n] = &a;
+         auto f = (int (*(int n, int (*aa)[n]))[n])
+         {
+           return aa;
+         }    
+         f(n, aa);
+      }
+
+
+3.  GENERIC FUNCTIONS
 
    A function literal may result in the instantiation of distinct 
    functions depending on the arguments provided.  For example:
@@ -255,13 +237,13 @@ ABSTRACT
          auto p2 = NEW((struct X) {});
       }         
 
-5.  RATIONALY
+4.  RATIONALY
 
    Functions literals improve the C language without introducing new 
    concepts, providing more flexibility to functions and enabling a form
    of generic functions in C.
 
-   5.1  Why not C++ lambdas syntax?
+   4.1  Why not C++ lambdas syntax?
    
       Maintaining the existing C grammar is the safest option, as it 
       ensures that function literal syntax stays in sync with function
@@ -290,7 +272,7 @@ ABSTRACT
       possible in both directions, from C to C++ and from C++ to C,
       when captureless lambdas are used.
 
-   5.2  Why not having captures like C++ lambdas?
+   4.2  Why not having captures like C++ lambdas?
 
       When lambdas were introduced in C++, the language already included
       the necessary infrastructure for capturing such as exceptions, 
@@ -309,14 +291,14 @@ ABSTRACT
       Note: For comparison, C++ lambdas without captures can use 
       constexpr objects, provided their addresses are not taken.
 
-6.  COMPATIBILITY AND IMPACT
+5.  COMPATIBILITY AND IMPACT
 
    * This feature does not break any existing valid C programs, since
      compound literal objects of type function cannot be created in the
      current C version. 
 
 
-7.  IMPLEMENTATION CONSIDERATIONS
+6.  IMPLEMENTATION CONSIDERATIONS
 
    Literal functions can be implemented by the compiler as:
 
@@ -324,28 +306,28 @@ ABSTRACT
 
    * Emission of a unique function symbol in the object file.
 
-   7.1 Recommended practice
+   6.1 Recommended practice
 
       * Identical functions literals, having the same function type and 
         function-body should, but they are not required, to produce the
         same function.
 
-   7.1 Existing implementations
+   6.1 Existing implementations
 
-      Cake transpiler has an implementation that converts C2Y code to
-      C99.
+      Cake transpiler has an experimental implementation that converts 
+      C2Y code to  C99.
       http://thradams.com/cake/playground.html  
 
       C++ lambda expressions without captures serve as prior art for 
       this feature, albeit with some differences.
 
-8. REFERENCES
+7. REFERENCES
 
    * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3550.pdf  
    * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2661.pdf
    * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2924.pdf
 
-9. ACKNOWLEDGEMENTS
+8. ACKNOWLEDGEMENTS
 
    I would like to recognize the following people for their help in this
    work: Joseph Myers, Martin Uecker, Jens Gustedt.
