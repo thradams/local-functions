@@ -12,7 +12,7 @@ SUMMARY OF CHANGES
    
    * N3679 
       - "literal functions" renamed to "function literals"
-      - fixed qsort sample, removed sample thrd_create
+      - removed qsort and thrd_create samples
 
    * N3645
       - Original proposal
@@ -22,8 +22,8 @@ ABSTRACT
    This  proposal  introduces  function  literals  into  the  C language,
    providing  a  syntax  for  defining functions within expressions. This
    feature  is  particularly  useful for creating callbacks, which is the
-   primary motivation for the proposal. 
-  
+   primary motivation for the proposal. Its usages also include the ability
+   to create generic functions.
 
 1.  MOTIVATION
 
@@ -57,9 +57,10 @@ ABSTRACT
    callback  in  that  particular  context,  the  struct must likewise be
    declared at file scope .
 
-   With  the introduction of function literals, we can declare the struct
-   capture  and  main_async_complete  (that does not need a name anymore)
-   inside the local scope.   
+   With the introduction of function literals, we can declare the struct
+   capture and main_async_complete (which no longer needs a name)
+   inside the local scope, keeping all these tightly related parts together.
+
 
       void async(void (*callback)(int result, void* data), void * data);
 
@@ -74,6 +75,33 @@ ABSTRACT
             free(p);
          }, capture);
       }  
+   
+   The cast from void * to struct capture is much safer, since we can see the 
+   correspondence with the object passed as an argument. 
+   
+   I believe this correspondence can be improved with future proposals defining 
+   this relationship in the type system or through attributes. It will not be 
+   defined here, but this sample provides a glimpse of the idea.
+
+      void async(void (*callback)(int result, [[type(T)]] void* data), 
+                 [[type(T)]] void * data);
+
+      int main()
+      {
+         struct capture { 
+            int value; 
+         }* capture = calloc(1, sizeof * capture); 
+
+         int dummy;
+         async((void (int result, void * capture)) {
+
+            // warning: capture is pointing to an object of type 'int'
+            struct capture * p = capture;
+
+            free(p);
+         }, &dummy);
+      }  
+
 
 2.  SYNTAX AND SEMANTICS
 
@@ -99,9 +127,9 @@ ABSTRACT
 
    2.2 Semantics
    
-   The  function  literal is a function designator. For instance, talking
-   the  address  of  a  function  literal  will return the address of the
-   function. 
+      The  function  literal  is  a  function  designator.  For instance,
+      talking  the  address of a function literal will return the address
+      of the function. 
       
          void main()
          {      
@@ -112,70 +140,85 @@ ABSTRACT
          }
 
    
-   Identifiers  from  the  enclosing scope, excluding labels, are visible
-   inside the function literal.  
+      Tags  and  enumerators from the enclosing scope are visible and can
+      be   used  inside  the  function  literal  return  type, 
+      parameters and body.     
 
-      Samples:
-
+   
          int main() {      
             enum E {A};
-            int i = 0;
-            (void (void)) {
-               int j = sizeof(i); //ok
-               enum E e = A; //ok
+            (enum E (enum E arg)) {
+               enum E e = A;
+               return e;
             }();
          }
 
+      Labels from the enclosing scope are NOT visible inside the function
+      literal body.   
 
-         int main() {      
+        int main() {      
             L1:;
             (void (void)) {
                //error: label 'L1' used but not defined
                goto L1; 
             }();
          }
- 
-    The  value  of  __func__  is an implementation-defined null-terminated
-    string when used inside function literals. For comparison, C++ lambdas
-    returns "operator ()".
-      
-    Function  literals cannot access the storage of objects with automatic
-    storage  duration or VM types from the enclosing function within their
-    function-body.    
 
-    Samples:
+      
+      VM  types  declared  in the enclosing scope can be used only in the
+      return  type  and  parameters  of  the function literal and are not
+      allowed inside the function body. 
+      
+         int f(int n) {
+            int ar[n];
+            (void ()){ typeof(ar) b; /*error*/ }();      
+         }
+
+      Objects with automatic storage, declared in the enclosing scope and
+      which  are  not  VM  types,  can  be  used  within the return type,
+      arguments and function body of function literals, provided they are
+      used in expressions whose values are discarded:  
+
+      Samples:
+
+         int main() {      
+            int i = 0;
+            (void (void)) {
+               int j = sizeof(i); //ok               
+            }();
+         }
+     
 
       int main() {
          int i = 0;
          (void(void)){ i = 1; /*error*/ }();
       }
 
-      int main() {
-        int i = 0;
-        (void(void)){ int j = sizeof(i); /*ok*/ }();
-      }
 
       int g;
       int main() {
          (void(void)){ g = 1; /*ok*/ }();
       }
 
+      
+      Static  objects  declared  in  the enclosing scope and objects that
+      have  function  type,  are  visible and can be used inside function
+      literal return type, arguments and body.  
+
       int main() {
          int f();
-         (void ()){ f(); /*ok*/}();      
-      }
-
-      int main() {
          static int i = 0;
-         (void ()){ i = 1; /*ok*/ }();      
+         (void ()){ 
+            i = 1; /*ok*/ 
+            f();//ok
+         }();      
       }
 
- 
-      int f(int n) {
-         int ar[n];
-         (void ()){ typeof(ar) b; /*error*/ }();      
-      }
-   
+
+   The  value  of  __func__  is an implementation-defined null-terminated
+   string when used inside function literals. For comparison, C++ lambdas
+   returns "operator ()".
+      
 
    A  type declared in the result of a function literal has the enclosing
    scope, either block or file scope.                                    
@@ -195,16 +238,6 @@ ABSTRACT
         struct Y y; /*error*/
       }
 
-      void f(int n) {
-
-         int a[n];
-         int (*aa)[n] = &a;
-         auto f = (int (*(int n, int (*aa)[n]))[n])
-         {
-           return aa;
-         }    
-         f(n, aa);
-      }
 
 
 3.  GENERIC FUNCTIONS
@@ -246,23 +279,21 @@ ABSTRACT
    4.1  Why not C++ lambdas syntax?
    
       Maintaining the existing C grammar is the safest option, as it 
-      ensures that function literal syntax stays in sync with function
-      declarations and naturally preserves compatible scope rules
+      ensures that function literal syntax stays always in sync with 
+      function declarations and naturally preserves existing scope rules.
 
       Consider this sample:
 
          int main() {
-            (struct X { int i; } ()) {
-               struct X x = {};
-               return x;
-            }();
-           struct X x = {}; /*ok*/
+            (struct X * (struct X * p)) {               
+               return p;
+            }(0);           
          }
-
-      The scope rules for the visibility of struct X are the same as 
-      those for functions. With the C++ lambda syntax, the return type
-      would be specified after the parameter scope, which could 
-      interfere with scope handling or complicate the implementation.
+      
+      The  tag  X,  declared  at  the  return  type,  can  be used in the
+      parameters.  With  the  C++ lambda syntax, the return type would be
+      specified  after  the  parameter,  which could interfere with scope
+      handling or complicate the implementation and wording.    
 
       This design also leaves room for alternative capture models that
       do not follow the C++ approach. Having different models with the
@@ -274,22 +305,23 @@ ABSTRACT
 
    4.2  Why not having captures like C++ lambdas?
 
-      When lambdas were introduced in C++, the language already included
-      the necessary infrastructure for capturing such as exceptions, 
-      constructors, destructors, and function objects.  In contrast, C 
-      lacks these features.
-   
-      Low-level alternatives in C would conflict with existing available 
-      patterns, while high-level abstractions might require introducing
-      new concepts that may not fit well in C.
+      When  lambdas were introduced in C++, the language already included
+      the  necessary  infrastructure  for  capturing  such as exceptions,
+      constructors,  destructors,  and  function  objects. In contrast, C
+      lacks these features.                                              
 
-      Automatic capture of constexpr objects, or constant objects 
-      declared with the register storage-qualifier, from the other 
-      scope were considered. This limitation can be removed in the 
-      future if necessary.
+      Low-level  alternatives in C would conflict with existing available
+      patterns,  while  high-level abstractions might require introducing
+      new concepts that may not fit well in C.                           
+
+      Automatic   capture  of  constexpr  objects,  or  constant  objects
+      declared  with the register storage-qualifier, from the other scope
+      were  considered.  This  limitation can be removed in the future if
+      necessary.                                                         
+
+      Note:   For  comparison,  C++  lambdas  without  captures  can  use
+      constexpr objects, provided their addresses are not taken.    
       
-      Note: For comparison, C++ lambdas without captures can use 
-      constexpr objects, provided their addresses are not taken.
 
 5.  COMPATIBILITY AND IMPACT
 
