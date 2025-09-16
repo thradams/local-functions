@@ -178,6 +178,9 @@ ABSTRACT
       which  are  not  VM  types,  can  be  used  within the return type,
       arguments and function body of function literals, provided they are
       used in expressions whose values are discarded:  
+      
+      (Or according with N3549: ... provided they are used in expressions 
+      discarded at some point within the function literal.)
 
       Samples:
 
