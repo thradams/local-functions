@@ -132,8 +132,9 @@ ABSTRACT
    
       The function literal is a function designator.
       
-      For  instance, taking the address of a function literal will return
-      the address of the function and function literal is not an lvalue.   
+      Particularly,  taking the address of a function literal returns the
+      address  of  the  function  (not  the  address of a pointer), and a
+      function literal is not an lvalue.      
       
          void main()
          {      
