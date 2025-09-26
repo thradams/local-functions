@@ -12,6 +12,7 @@ SUMMARY OF CHANGES
    * N3679 
       - "literal functions" renamed to "function literals"  
       - Removed qsort and thrd_create samples  
+      - Clarifications
 
    * N3645
       - Original proposal  
@@ -61,6 +62,10 @@ ABSTRACT
    capture  and main_async_complete (which no longer needs a name) inside
    the local scope, keeping all these tightly related parts together.    
 
+   The  syntax  for  function  literals  is  similar  to that of compound
+   literals,  with  the  difference that the type is a function type, and
+   instead of an initializer list, we have the function body. 
+
       void async(void (*callback)(int result, void* data), void * data);
 
       int main()
@@ -75,6 +80,7 @@ ABSTRACT
          }, capture);
       }  
    
+  
    The cast from void * to struct capture is much safer, since we can see
    the correspondence with the object passed as an argument.             
 
