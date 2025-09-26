@@ -347,6 +347,14 @@ ABSTRACT
 
    C++  lambda  expressions  without captures serve as prior art for this
    feature, albeit with some differences
+   
+   A  combination  of two GCC extensions—statement expressions and nested
+   functions—gives us something similar to function literals.
+   For instance:
+
+      int main() {
+         ({int _(int a) { return a * 2; } _;})(2);
+      }
 
    Cake  transpiler  has an experimental implementation that converts C2Y
    code to C99. http://thradams.com/cake/playground.html                 
