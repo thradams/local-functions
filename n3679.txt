@@ -1,4 +1,4 @@
-N3679 - Function literals
+                        N3679 - FUNCTION LITERALS
 
 Author : Thiago R Adams  
 Date   : 2025-07-11  
@@ -6,7 +6,6 @@ Project: ISO/IEC JTC 1/SC 22/WG 14
 Title  : Function Literals  
 Target audience: Implementers, users  
 Prior art: C++ lambdas without capture  
-Revision: r0  
 
 SUMMARY OF CHANGES
 
