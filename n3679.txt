@@ -143,15 +143,17 @@ ABSTRACT
             &(void (void)){} = 0;  // error: lvalue required
          }
 
-      Tags  and  enumerators from the enclosing scope are visible and can
-      Tags  and  enumerators from the enclosing scope are visible and can
-      be  used  in  the return type, parameters, and body of the function
-      literal.           
+      
+      Tags,  enumerators,  and  functions declared in the enclosing scope
+      are  visible  and  can  be used in the return type, parameters, and
+      body of the function literal.     
 
          int main() {      
+            void f();
             enum E {A};
             (enum E (enum E arg)) {
                enum E e = A;
+               f();
                return e;
             }(A);
          }
@@ -196,26 +198,25 @@ ABSTRACT
             (void(void)){ i = 1; /* error */ }();
          }
 
+         int main() {
+           int i;
+           1 || (int (void)) { return i; /* error */ }();
+         }
+      
+
+      Objects  with static storage duration declared at file or enclosing
+      scope  are  visible  and can be used in the return type, arguments,
+      and body of a function literal.  (TODO thread_local?)
+
          int g;
          int main() {
             (void(void)){ g = 1; /* ok */ }();
          }
 
          int main() {
-           int i;
-           1 || (int (void)) { return i; /* error */ }();
-         }
-
-      Static  objects  declared  in  the enclosing scope and objects that
-      have  function type are visible and can be used in the return type,
-      arguments, and body of a function literal.  
-
-         int main() {
-            int f();
             static int i = 0;
             (void ()){ 
                i = 1; /* ok */ 
-               f();   /* ok */
             }();      
          }
 
