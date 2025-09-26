@@ -282,8 +282,8 @@ ABSTRACT
    be unique.    
     
        int main(){
-          auto pf1 = (void ()) {static int i = 0; };
-          auto pf2 = (void ()) {static int i = 0; };
+          auto pf1 = (void ()) { static int i = 0; };
+          auto pf2 = (void ()) { static int i = 0; };
           assert(pf1 != pf2);
        }
 
