@@ -176,11 +176,8 @@ ABSTRACT
 
       Objects with automatic storage, declared in the enclosing scope and
       which  are  not  VM  types,  can  be  used  within the return type,
-      arguments and function body of function literals, provided they are
-      used in expressions whose values are discarded:  
-      
-      (Or according with N3549: ... provided they are used in expressions 
-      discarded at some point within the function literal.)
+      arguments and function body of function literals, provided they are 
+      used in expressions discarded at some point within the function literal.
 
       Samples:
 
@@ -203,10 +200,14 @@ ABSTRACT
          (void(void)){ g = 1; /*ok*/ }();
       }
 
-      
-      Static  objects  declared  in  the enclosing scope and objects that
-      have  function  type,  are  visible and can be used inside function
-      literal return type, arguments and body.  
+      int main() {
+        int i;
+        1 || (int (void)) { return i; /*error*/ }();
+      }
+
+    Static  objects  declared  in  the enclosing scope and objects that
+    have  function  type,  are  visible and can be used in the return type, 
+    arguments and body of a function literal.  
 
       int main() {
          int f();
@@ -258,20 +259,28 @@ ABSTRACT
          int b = 2;
          SWAP(a, b);
       }
+   
+   Distinct  function literals are not required to have unique addresses.
+       
+       int main(){
+          auto pf1 = (void ()) {return 1 + 1; };
+          auto pf2 = (void ()) {return 2; };
+          //pf1 and pf2 can be the same
+       }
 
+   This  allows implementations to reuse the same function literal, which
+   is  important  to  avoid code bloat caused by function literals inside
+   functions-like macros. 
 
-      #define NEW(...)\
-       (typeof((__VA_ARGS__))* (void)){\
-          typeof(__VA_ARGS__)* _p = malloc(sizeof * _p);\
-            if (_p) *_p = __VA_ARGS__;\
-            return _p;\
-      }()
-
-      struct X { const int i; };
-
-      int main() {
-         auto p2 = NEW((struct X) {});
-      }         
+   Note: When static objects are used inside function literals, they have
+   unique  addresses.  Thus, in this case, the function literal will also
+   be unique.
+    
+       int main(){
+          auto pf1 = (void ()) {static int i = 0; };
+          auto pf2 = (void ()) {static int i = 0; };
+          assert(pf1 != pf2);
+       }
 
 4.  RATIONALY
 
@@ -296,7 +305,7 @@ ABSTRACT
       The  tag  X,  declared  at  the  return  type,  can  be used in the
       parameters.  With  the  C++ lambda syntax, the return type would be
       specified  after  the  parameter,  which could interfere with scope
-      handling or complicate the implementation and wording.    
+      rules.    
 
       This design also leaves room for alternative capture models that
       do not follow the C++ approach. Having different models with the
@@ -317,10 +326,10 @@ ABSTRACT
       patterns,  while  high-level abstractions might require introducing
       new concepts that may not fit well in C.                           
 
-      Automatic   capture  of  constexpr  objects,  or  constant  objects
-      declared  with the register storage-qualifier, from the other scope
-      were  considered.  This  limitation can be removed in the future if
-      necessary.                                                         
+      Capturing constexpr objects or constants declared with the register
+      storage  qualifier from another scope was considered. Although this
+      limitation might be lifted in the future, the workaround is simple:
+      use static constexpr instead.                                                         
 
       Note:   For  comparison,  C++  lambdas  without  captures  can  use
       constexpr objects, provided their addresses are not taken.    
