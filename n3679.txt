@@ -232,8 +232,10 @@ ABSTRACT
 
 3. GENERIC FUNCTIONS
 
-   A function literal may result in the instantiation of distinct 
-   functions depending on the arguments provided. For example:
+   A function literal may be used in function-like macros, allowing a form of
+   generic functions in C.
+
+   For example:
 
       #define SWAP(a, b)\
        (void (typeof(a)* arg1, typeof(b)* arg2)) { \
@@ -244,14 +246,19 @@ ABSTRACT
          int a = 1;
          int b = 2;
          SWAP(a, b);
+         
+         double da = 1.0;
+         double  db = 2.0;
+         SWAP(da, db);
       }
    
    Distinct function literals are not required to have unique addresses.
        
        int main(){
-          auto pf1 = (void ()) {return 1 + 1; };
-          auto pf2 = (void ()) {return 2; };
-          // pf1 and pf2 can be the same
+          auto pf1 = (void ()) { return 1 + 1; };
+          auto pf2 = (void ()) { return 2; };
+          auto pf3 = (void ()) { return 2; };
+          // pf1 and pf2 and pf3 can have the same address
        }
 
    This allows implementations to reuse the same function literal, which
