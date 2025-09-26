@@ -144,8 +144,9 @@ ABSTRACT
          }
 
       Tags  and  enumerators from the enclosing scope are visible and can
-      be  used  inside  the function literal return type, parameters, and
-      body.  
+      Tags  and  enumerators from the enclosing scope are visible and can
+      be  used  in  the return type, parameters, and body of the function
+      literal.           
 
          int main() {      
             enum E {A};
