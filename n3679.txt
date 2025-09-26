@@ -1,35 +1,35 @@
-                           N3679 - Function literals
+N3679 - Function literals
 
 Author : Thiago R Adams  
 Date   : 2025-07-11  
 Project: ISO/IEC JTC 1/SC 22/WG 14  
-Title  : Literal functions
-Target audience: Implementers, users
-Prior art: C++ lambdas without capture
-Revision: r0
+Title  : Function Literals  
+Target audience: Implementers, users  
+Prior art: C++ lambdas without capture  
+Revision: r0  
 
 SUMMARY OF CHANGES
-   
+
    * N3679 
-      - "literal functions" renamed to "function literals"
-      - removed qsort and thrd_create samples
+      - "literal functions" renamed to "function literals"  
+      - Removed qsort and thrd_create samples  
 
    * N3645
-      - Original proposal
+      - Original proposal  
 
 ABSTRACT
 
-   This  proposal  introduces  function  literals  into  the  C language,
-   providing  a  syntax  for  defining functions within expressions. This
-   feature  is  particularly  useful for creating callbacks, which is the
+   This proposal introduces function literals into the C language,
+   providing a syntax for defining functions within expressions. This
+   feature is particularly useful for creating callbacks, which is the
    primary motivation for the proposal. Its usages also include the ability
    to create generic functions.
 
-1.  MOTIVATION
+1. MOTIVATION
 
-   Many  standard  C library functions (e.g., 'qsort', 'thrd_create') and
-   common  APIs  rely  on  callbacks.  Today,  using  them requires extra
-   boilerplate, especially for asynchronous callbacks. 
+   Many standard C library functions (e.g., 'qsort', 'thrd_create') and
+   common APIs rely on callbacks. Today, using them requires extra
+   boilerplate, especially for asynchronous callbacks.  
 
    Consider this sample:
 
@@ -41,26 +41,25 @@ ABSTRACT
       struct capture { int value; };
                 
       static void main_async_complete(int result, void * data) {
-         struct capture * capture = data;
+         struct capture *capture = data;
          free(capture);
       }
       
       int main() {
-         struct capture * capture = calloc(1, sizeof * capture); 
+         struct capture *capture = calloc(1, sizeof *capture); 
          async(main_async_complete, capture);
       }
 
-   Given    the   current   state   of   the   language,   the   function
-   main_async_complete,  which  is  used only once and is specific to the
+   Given the current state of the language, the function
+   main_async_complete, which is used only once and is specific to the
    context in which it is called in main, must be declared at file scope.
-   Since  it uses the struct capture, which is also tied to that specific
-   callback  in  that  particular  context,  the  struct must likewise be
-   declared at file scope .
+   Since it uses the struct capture, which is also tied to that specific
+   callback in that particular context, the struct must likewise be
+   declared at file scope.
 
    With the introduction of function literals, we can declare the struct
    capture and main_async_complete (which no longer needs a name)
    inside the local scope, keeping all these tightly related parts together.
-
 
       void async(void (*callback)(int result, void* data), void * data);
 
@@ -68,10 +67,10 @@ ABSTRACT
       {
          struct capture { 
             int value; 
-         }* capture = calloc(1, sizeof * capture); 
+         }* capture = calloc(1, sizeof *capture); 
 
          async((void (int result, void * capture)) {
-            struct capture * p = capture;
+            struct capture *p = capture;
             free(p);
          }, capture);
       }  
@@ -90,20 +89,19 @@ ABSTRACT
       {
          struct capture { 
             int value; 
-         }* capture = calloc(1, sizeof * capture); 
+         }* capture = calloc(1, sizeof *capture); 
 
          int dummy;
          async((void (int result, void * capture)) {
 
             // warning: capture is pointing to an object of type 'int'
-            struct capture * p = capture;
+            struct capture *p = capture;
 
             free(p);
          }, &dummy);
       }  
 
-
-2.  SYNTAX AND SEMANTICS
+2. SYNTAX AND SEMANTICS
 
    2.1 Syntax
  
@@ -114,37 +112,32 @@ ABSTRACT
       function-literal:
          ( type-name ) function-body 
  
-
-   The   syntax   is   ambiguous   with   that  of  a  compound  literal.
+   The syntax is ambiguous with that of a compound literal.
    Disambiguation is based on the type: function literals have a function
    type, whereas compound literals do not.                               
 
-   Function-specifiers  (_Noreturn,  inline) and storage-class specifiers
+   Function-specifiers (_Noreturn, inline) and storage-class specifiers
    (auto, constexpr, extern, register, static, thread_local, typedef) are
-   not  permitted  in  function  literals,  as  their  semantics  are not
+   not permitted in function literals, as their semantics are not
    currently defined in this context.
-
 
    2.2 Semantics
    
-      The  function  literal  is  a  function  designator.  For instance,
-      talking  the  address of a function literal will return the address
+      The function literal is a function designator. For instance,
+      taking the address of a function literal will return the address
       of the function. 
       
          void main()
          {      
-            (void (*pf)(void)) = &(void (void)){}; //ok
+            (void (*pf)(void)) = &(void (void)){}; // ok
                    
-            //error: lvalue required as left operand of assignment
+            // error: lvalue required as left operand of assignment
             &(void (void)){} = 0; 
          }
 
-   
-      Tags  and  enumerators from the enclosing scope are visible and can
-      be   used  inside  the  function  literal  return  type, 
-      parameters and body.     
+      Tags and enumerators from the enclosing scope are visible and can
+      be used inside the function literal return type, parameters, and body.     
 
-   
          int main() {      
             enum E {A};
             (enum E (enum E arg)) {
@@ -159,24 +152,23 @@ ABSTRACT
         int main() {      
             L1:;
             (void (void)) {
-               //error: label 'L1' used but not defined
+               // error: label 'L1' used but not defined
                goto L1; 
             }();
          }
 
-      
-      VM  types  declared  in the enclosing scope can be used only in the
-      return  type  and  parameters  of  the function literal and are not
+      VM types declared in the enclosing scope can be used only in the
+      return type and parameters of the function literal and are not
       allowed inside the function body. 
       
          int f(int n) {
             int ar[n];
-            (void ()){ typeof(ar) b; /*error*/ }();      
+            (void ()){ typeof(ar) b; /* error */ }();      
          }
 
       Objects with automatic storage, declared in the enclosing scope and
-      which  are  not  VM  types,  can  be  used  within the return type,
-      arguments and function body of function literals, provided they are 
+      which are not VM types, can be used within the return type,
+      arguments, and function body of function literals, provided they are 
       used in expressions discarded at some point within the function literal.
 
       Samples:
@@ -184,50 +176,46 @@ ABSTRACT
          int main() {      
             int i = 0;
             (void (void)) {
-               int j = sizeof(i); //ok               
+               int j = sizeof(i); // ok               
             }();
          }
-     
 
       int main() {
          int i = 0;
-         (void(void)){ i = 1; /*error*/ }();
+         (void(void)){ i = 1; /* error */ }();
       }
-
 
       int g;
       int main() {
-         (void(void)){ g = 1; /*ok*/ }();
+         (void(void)){ g = 1; /* ok */ }();
       }
 
       int main() {
         int i;
-        1 || (int (void)) { return i; /*error*/ }();
+        1 || (int (void)) { return i; /* error */ }();
       }
 
-    Static  objects  declared  in  the enclosing scope and objects that
-    have  function  type,  are  visible and can be used in the return type, 
-    arguments and body of a function literal.  
+      Static objects declared in the enclosing scope and objects that
+      have function type are visible and can be used in the return type, 
+      arguments, and body of a function literal.  
 
       int main() {
          int f();
          static int i = 0;
          (void ()){ 
-            i = 1; /*ok*/ 
-            f();//ok
+            i = 1; /* ok */ 
+            f(); // ok
          }();      
       }
 
-
-   The  value  of  __func__  is an implementation-defined null-terminated
+   The value of __func__ is an implementation-defined null-terminated
    string when used inside function literals. For comparison, C++ lambdas
-   returns "operator ()".
+   return "operator ()".
       
-
-   A  type declared in the result of a function literal has the enclosing
+   A type declared in the result of a function literal has the enclosing
    scope, either block or file scope.                                    
 
-   A  type  declared  within the parameter list of a function literal has
+   A type declared within the parameter list of a function literal has
    block scope, which is the function literal body itself.
 
    Sample:
@@ -238,16 +226,14 @@ ABSTRACT
             return x;
          }(nullptr);
 
-        struct X x; //ok
-        struct Y y; /*error*/
+        struct X x; // ok
+        struct Y y; /* error */
       }
 
-
-
-3.  GENERIC FUNCTIONS
+3. GENERIC FUNCTIONS
 
    A function literal may result in the instantiation of distinct 
-   functions depending on the arguments provided.  For example:
+   functions depending on the arguments provided. For example:
 
       #define SWAP(a, b)\
        (void (typeof(a)* arg1, typeof(b)* arg2)) { \
@@ -260,20 +246,20 @@ ABSTRACT
          SWAP(a, b);
       }
    
-   Distinct  function literals are not required to have unique addresses.
+   Distinct function literals are not required to have unique addresses.
        
        int main(){
           auto pf1 = (void ()) {return 1 + 1; };
           auto pf2 = (void ()) {return 2; };
-          //pf1 and pf2 can be the same
+          // pf1 and pf2 can be the same
        }
 
-   This  allows implementations to reuse the same function literal, which
-   is  important  to  avoid code bloat caused by function literals inside
-   functions-like macros. 
+   This allows implementations to reuse the same function literal, which
+   is important to avoid code bloat caused by function literals inside
+   function-like macros. 
 
    Note: When static objects are used inside function literals, they have
-   unique  addresses.  Thus, in this case, the function literal will also
+   unique addresses. Thus, in this case, the function literal will also
    be unique.
     
        int main(){
@@ -282,16 +268,16 @@ ABSTRACT
           assert(pf1 != pf2);
        }
 
-4.  RATIONALY
+4. RATIONALE
 
-   Functions literals improve the C language without introducing new 
+   Function literals improve the C language without introducing new 
    concepts, providing more flexibility to functions and enabling a form
    of generic functions in C.
 
-   4.1  Why not C++ lambdas syntax?
+   4.1 Why not C++ lambda syntax?
    
       Maintaining the existing C grammar is the safest option, as it 
-      ensures that function literal syntax stays always in sync with 
+      ensures that function literal syntax always stays in sync with 
       function declarations and naturally preserves existing scope rules.
 
       Consider this sample:
@@ -302,9 +288,9 @@ ABSTRACT
             }(0);           
          }
       
-      The  tag  X,  declared  at  the  return  type,  can  be used in the
-      parameters.  With  the  C++ lambda syntax, the return type would be
-      specified  after  the  parameter,  which could interfere with scope
+      The tag X, declared at the return type, can be used in the
+      parameters. With the C++ lambda syntax, the return type would be
+      specified after the parameter, which could interfere with scope
       rules.    
 
       This design also leaves room for alternative capture models that
@@ -315,55 +301,39 @@ ABSTRACT
       possible in both directions, from C to C++ and from C++ to C,
       when captureless lambdas are used.
 
-   4.2  Why not having captures like C++ lambdas?
+   4.2 Why not have captures like C++ lambdas?
 
-      When  lambdas were introduced in C++, the language already included
-      the  necessary  infrastructure  for  capturing  such as exceptions,
-      constructors,  destructors,  and  function  objects. In contrast, C
+      When lambdas were introduced in C++, the language already included
+      the necessary infrastructure for capturing, such as exceptions,
+      constructors, destructors, and function objects. In contrast, C
       lacks these features.                                              
 
-      Low-level  alternatives in C would conflict with existing available
-      patterns,  while  high-level abstractions might require introducing
+      Low-level alternatives in C would conflict with existing available
+      patterns, while high-level abstractions might require introducing
       new concepts that may not fit well in C.                           
 
       Capturing constexpr objects or constants declared with the register
-      storage  qualifier from another scope was considered. Although this
+      storage qualifier from another scope was considered. Although this
       limitation might be lifted in the future, the workaround is simple:
       use static constexpr instead.                                                         
 
-      Note:   For  comparison,  C++  lambdas  without  captures  can  use
+      Note: For comparison, C++ lambdas without captures can use
       constexpr objects, provided their addresses are not taken.    
       
-
-5.  COMPATIBILITY AND IMPACT
+5. COMPATIBILITY AND IMPACT
 
    * This feature does not break any existing valid C programs, since
      compound literal objects of type function cannot be created in the
      current C version. 
 
+6. EXISTING IMPLEMENTATIONS
 
-6.  IMPLEMENTATION CONSIDERATIONS
+    Cake transpiler has an experimental implementation that converts 
+    C2Y code to C99.
+    http://thradams.com/cake/playground.html  
 
-   Literal functions can be implemented by the compiler as:
-
-   * Anonymous 'static' functions with unique internal names.
-
-   * Emission of a unique function symbol in the object file.
-
-   6.1 Recommended practice
-
-      * Identical functions literals, having the same function type and 
-        function-body should, but they are not required, to produce the
-        same function.
-
-   6.1 Existing implementations
-
-      Cake transpiler has an experimental implementation that converts 
-      C2Y code to  C99.
-      http://thradams.com/cake/playground.html  
-
-      C++ lambda expressions without captures serve as prior art for 
-      this feature, albeit with some differences.
+    C++ lambda expressions without captures serve as prior art for 
+    this feature, albeit with some differences.
 
 7. REFERENCES
 
@@ -375,4 +345,3 @@ ABSTRACT
 
    I would like to recognize the following people for their help in this
    work: Joseph Myers, Martin Uecker, Jens Gustedt.
-
