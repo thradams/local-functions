@@ -1,0 +1,329 @@
+---------------------- N3678 Local functions ---------------------------
+
+Author : Thiago R Adams  
+Date   : 2025-08-05  
+Project: ISO/IEC JTC 1/SC 22/WG 14  
+Title  : Local functions
+Target audience: Implementers, users
+Prior art: GCC Nested functions without capture
+
+
+
+ABSTRACT
+
+   This proposal introduces support for defining functions within the definition of other functions.
+        
+1.  INTRODUCTION
+
+    C currently allows function declarations inside block scope, but not 
+    function definitions. 
+    
+    Allowing inner function definitions would enable:
+
+    - Better organization of code.
+
+    - Encapsulation of helper logic that is not meaningful  outside  the
+      enclosing function.
+
+    - Complements function literals N3679
+
+   Following the same principles as N3679, this proposal avoids 
+   introducing closures (captures), keeping the semantics  simple and
+   compatible with C's execution and memory model.
+
+2. SYNTAX AND SEMANTICS
+
+   2.1 Syntax
+ 
+      block-item:
+        ...
+        function-definition
+      
+      
+
+      The only allowed storage specifier is static. the other possible candidates would be auto.
+      that is already used by GCC nested functions. We we will give more details later n the section
+      COMPATIBILITY AND IMPACT.
+
+
+   2.2 Semantics
+      
+      local function declarations are allowed, but they requires the usage of the storage class specifier static
+      as a way of disambiguiate from extern function declaration.
+
+         void f();
+
+         int main() {      
+            
+            static void f(); //local f
+
+            void f() {
+            
+            }
+         }
+
+      Local functions have semantics similar to those of local functions, as described in N3679.
+      The scope of the function follows the existing block scope.
+      
+
+
+      Tags,  enumerators,  and  functions declared in the enclosing scope
+      are  visible  and  can  be used in the return type, parameters, and
+      body of the local function.     
+
+         int main() {      
+            
+            void f();
+            enum E {A};
+
+            enum E local(enum E arg) 
+            {
+               enum E e = A;
+               f();
+               return e;
+            }
+         }
+
+      Labels from the enclosing scope are NOT visible inside the local
+      function body.  
+
+        int main() {      
+            L1:;
+            void local(void)
+            {
+               // error: label 'L1' used but not defined
+               goto L1; 
+            }
+         }
+
+      VM  types  from  the enclosing scope can be used only in the return
+      type  and  parameters  of  the local function and are not allowed
+      inside the local function body. 
+      
+         int f(int n) {
+            int ar[n];
+            void local()
+            { 
+              typeof(ar) b; /* error */ 
+            }     
+         }
+
+      Objects with automatic storage, declared in the enclosing scope and
+      which  are  not  VM  types,  can  be  used  within the return type,
+      arguments,  and  function  body of local functions, provided they
+      are used in discarded expressions inside the function body.
+
+      Samples:
+
+         int main() {      
+            int i = 0;
+            void local(void)
+            {
+               int j = sizeof(i); // ok               
+            }
+         }
+
+         int main() {
+            int i = 0;
+            void local(void){ i = 1; /* error */ }
+         }
+
+
+      Objects  with static storage duration declared at file or enclosing
+      scope  are  visible  and can be used in the return type, arguments,
+      and body of a local function.  (TODO thread_local?)
+
+         int g;
+         int main() {
+            void local(void) { g = 1; /* ok */ };
+         }
+
+         int main() {
+            static int i = 0;
+            void local() { 
+               i = 1; /* ok */ 
+            }      
+         }
+
+      The  value of __func__ is an implementation-defined null-terminated
+      string  when  used  inside  local functions. For comparison, GCC 
+      returns the name of the function.
+      
+      
+      A  type  declared  in  the  result  of  a  local function has the
+      enclosing scope, either block or file scope.                       
+
+      A type declared within the parameter list of a local function has
+      block scope, which is the local function body itself.  
+
+      Sample:
+
+         int main() {
+
+            struct X { int i; } local(struct Y *y)) 
+            {
+               struct X x = {};
+               return x;
+            }
+
+           struct X x; // ok
+           struct Y y; /* error */
+         }
+  
+
+
+3. COMPATIBILITY AND IMPACT
+
+   The syntax used by local functions is the same as that of GCC nested
+   functions. The big difference is that GCC nested function allow capturing variables
+   by  reference from the enclosing function.
+         
+   When GCC nested functions do not capture variables, both behave the same 
+   way.   However, internally, GCC may still use trampolines  even if variables 
+   are not captured, which are a source of security concerns, as described 
+   in N3657 "Functions with Data – Closures in C (A Comprehensive Proposal 
+   Overviewing Blocks, Nested Functions, and Lambdas)".
+   
+   For instance, the code bellow does not have captures. Compiling this code
+   with -Wtrampolines will confirm the presence of trampolines.
+      
+      //Use -Wtrampolines in GCC
+      #include <stdio.h>
+
+          int main() {
+          void local_without_capture() { printf("hello"); }
+          void (*f)() = local_without_capture;
+          f();
+          return 0;
+      }
+      
+   https://godbolt.org/z/G3bj36693
+   
+   Adding the -O1 optimization option removes both the trampoline and the warning.
+      
+      More details:
+
+      GCC nested function can be used with the auto storage qualifier .
+      For instance:
+
+       int main() {
+           auto void f();
+          
+           auto void f()
+           {
+           }          
+      }
+      
+      The usage of auto in the declaration is necessary to disabiguiation with 
+      the same name extern function.       
+
+      int main() {
+           auto void f();          
+           void f(){}          
+      }
+      void f(){}
+
+      Having the external declaration with local definition is an error:
+
+      int main() {
+           void f();          
+           void f(){} //error: static declaration of 'f' follows non-static declaration          
+      }
+
+   
+   We believe that local functions can be introduzed as an especial case of GCC nested 
+   functions with removing captures and trampolines by definition.  This special and standard
+   case of GCC nested function could expliclty defined with static.
+   
+   int main() {
+           static void f();          
+           static void f(){}          
+      }
+   void f(){}
+
+   We propose the static to be mandatoy of the declaration and optional on the definition.
+   The consequence of this design is that existing GCC nested function that does not have capture
+   and is not using auto storage qualifier become standard code. GCC can keep the extenions without
+   breaking code.
+   
+   int main() {           
+      void f(){ printf("hello"); }          
+    }
+   
+   If capture are not used, users have the choice of uprgande code to because standard by adding static.
+
+
+
+
+   Function declarations definiion using auto are stilll an GCC extension.
+
+
+
+   
+   We propose to diference 
+   this special case by using static storage qualifier and disallow for now auto.
+
+          int main() {
+           static void f();
+          
+           static void f()
+           {
+           }          
+      }
+   
+   The usage of static keeps the GCC nested isolated as extension. In the hipotecical 
+   case consernd   relative of trampolintes are removed in the futre they standard local 
+   function can be updated to the non static version and the existing auto storage qualfier 
+   used by GCC an came back.
+
+
+   We propose the usage of static to be required on the declaraion and optional
+   in the definition.
+
+   Optional vs. Required static in function definition? 
+   
+   1. Require static 
+
+    * Makes it explicit that local functions differ from GCC nested functions.
+    * expliciyly indicates that the code is free of trampolines.
+
+   2. Optional static
+
+     * Allows existing code that uses GCC nested functions without captures 
+       to become valid standard code automatically. 
+
+     * Provides smoother migration for existing users. 
+
+     * Also could change default in the future. Lets say now the default for 
+       local functio is static. In case some proposals finds a way of removing conscerns abvout trampolines, 
+       then the default could be not static (as static being an special case)
+
+
+
+   
+
+4. EXISTING IMPLEMENTATIONS
+
+    - GCC nested functions without capturing variables.
+    
+    - Cake http://thradams.com/cake/playground.html  
+      (Missing some details like VM types)
+
+5. REFERENCES
+   
+   * N3645 - Literal functions
+     https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3645.pdf
+   
+   * N3657 - Functions with Data - Closures in C 
+     https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3657.htm
+   
+   * N3654 - Accessing the Context of Nested Functions
+     https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3654.pdf
+         
+   * GCC - Nested functions
+     https://gcc.gnu.org/onlinedocs/gcc/Nested-Functions.html
+
+6. ACKNOWLEDGEMENTS
+
+   I would like to recognize the following people for their help in this
+   work: Martin Uecker, Alejandro Colomar, Jens Gustedt.

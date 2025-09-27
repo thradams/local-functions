@@ -1,4 +1,5 @@
-                        N3679 - FUNCTION LITERALS
+                        
+---------------------- N3679 Function Literals -------------------------
 
 Author : Thiago R Adams  
 Date   : 2025-07-11  
