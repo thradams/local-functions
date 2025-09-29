@@ -207,11 +207,11 @@ ABSTRACT
 
       Objects  with static storage duration declared at file or enclosing
       scope  are  visible  and can be used in the return type, arguments,
-      and body of a function literal.  (TODO thread_local?)
+      and body of a function literal.
 
          int g;
          int main() {
-            (void(void)){ g = 1; /* ok */ }();
+            (void (void)) { g = 1; /* ok */ }();
          }
 
          int main() {
@@ -282,7 +282,7 @@ ABSTRACT
    unique  addresses.  Thus, in this case, the function literal will also
    be unique.    
     
-       int main(){
+       int main() {
           auto pf1 = (void ()) { static int i = 0; };
           auto pf2 = (void ()) { static int i = 0; };
           assert(pf1 != pf2);
