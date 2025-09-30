@@ -2,7 +2,7 @@
 ---------------------- N3679 Function Literals -------------------------
 
 Author : Thiago R Adams  
-Date   : 2025-07-11  
+Date   : 2025-09-30
 Project: ISO/IEC JTC 1/SC 22/WG 14  
 Title  : Function Literals  
 Target audience: Implementers, users  
@@ -102,7 +102,7 @@ ABSTRACT
          int dummy;
          async((void (int result, void * capture)) {
 
-            // warning: capture is pointing to an object of type 'int'
+            /* warning: capture is pointing to an object of type 'int' */
             struct capture *p = capture;
 
             free(p);
@@ -139,9 +139,9 @@ ABSTRACT
       
          void main()
          {      
-            (void (*pf)(void)) = &(void (void)){}; // ok
+            (void (*pf)(void)) = &(void (void)){}; /* ok */
                                
-            &(void (void)){} = 0;  // error: lvalue required
+            &(void (void)){} = 0;  /* error: lvalue required */
          }
 
       
@@ -165,7 +165,7 @@ ABSTRACT
         int main() {      
             L1:;
             (void (void)) {
-               // error: label 'L1' used but not defined
+               /* error: label 'L1' used but not defined */
                goto L1; 
             }();
          }
@@ -190,7 +190,7 @@ ABSTRACT
          int main() {      
             int i = 0;
             (void (void)) {
-               int j = sizeof(i); // ok               
+               int j = sizeof(i); /* OK */
             }();
          }
 
@@ -239,7 +239,7 @@ ABSTRACT
                return x;
             }(nullptr);
 
-           struct X x; // ok
+           struct X x; /* OK */
            struct Y y; /* error */
          }
 
@@ -271,7 +271,7 @@ ABSTRACT
           auto pf1 = (void ()) { return 1 + 1; };
           auto pf2 = (void ()) { return 2; };
           auto pf3 = (void ()) { return 2; };
-          // pf1 and pf2 and pf3 can have the same address
+          /* pf1 and pf2 and pf3 can have the same address */
        }
 
    This  allows implementations to reuse the same function literal, which
