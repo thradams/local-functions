@@ -10,10 +10,10 @@ Prior art: GCC Nested functions without capture
 
 ABSTRACT
    
-   This  proposal  introduces support for defining functions inside other
-   function  definitions,  similar  to  GCC  nested functions. Unlike GCC
-   nested  functions,  local  functions  do  not form closures and do not
-   capture variables.  
+   This proposal introduces support for defining functions inside another
+   function,  similar  to  the GCC extension nested functions. Unlike GCC
+   nested  functions,  local  functions  do  not  have full access to the
+   variables of the containing function.
    
         
 1.  INTRODUCTION
@@ -38,10 +38,14 @@ ABSTRACT
 
    2.1 Syntax
  
-      block-item:
-        ...
-        function-definition
+         block-item:
+           ...
+           function-definition
       
+      Local  function  definitions  are permitted within functions in the
+      same places where variable definitions are allowed; that is, within
+      any block, mixed with other declarations and statements. 
+
       The  syntax  we  are proposing is the same as GCC nested functions;
       however, we have some design questions.                          
 
@@ -78,15 +82,15 @@ ABSTRACT
       The  reason  we  are  not introducing captures is the complexity it
       brings  with  lifetimes  and  compatibility  with  normal  function
       pointers,  as  well  as concerns about the way GCC nested functions
-      work.  In GCC, trampolines are a mechanism used to implement nested
-      functions.                                                         
+      work.  GCC implements taking the address of a nested function using
+      a  technique  called  trampolines.  This technique was described in
+      Lexical  Closures  for C++ (Thomas M. Breuel, USENIX C++ Conference
+      Proceedings, October 17-21, 1988). [6]                               
 
-      Effectively, a trampoline is a runtime-generated function stub that
-      allows  the  nested  function  to  behave  like  a  normal function
-      pointer.  There  are  security  risks  associated  with trampolines
-      because  they  involve  executable  code  on the stack. Many modern
-      systems  mark  the stack as non-executable to prevent exploits such
-      as buffer overflows.                                               
+      There  are  security risks associated with trampolines because they
+      involve  executable code on the stack. Many modern systems mark the
+      stack   as  non-executable  to  prevent  exploits  such  as  buffer
+      overflows. [7]       
 
       Trampolines  are  only  required  if  the  nested function captures
       variables.  However, internally, GCC may still use trampolines even
@@ -136,8 +140,8 @@ ABSTRACT
       would  not  differ  in  syntax  from GCC nested functions. The only
       difference is that captures would not be allowed for standard local
       functions,  and  GCC  nested  functions  would  become an extension
-      concerning  only  captures.  This  option is also related to N3679,
-      where 'auto' would no longer serve as a storage qualifier.  
+      concerning  only  captures.  This  option is also related to N3579,
+      where 'auto' would no longer serve as a storage qualifier.  [5]
 
       Captures  for  local functions and function literals are also not a
       closed  subject,  and this design is still open in many ways. Using
@@ -147,10 +151,14 @@ ABSTRACT
 
    2.2 Semantics
       
-      Local functions have semantics similar to those of local functions,
-      as  described  in  N3679.  The  scope  of  the function follows the
-      existing block scope.                                              
-
+      Local  functions  have  semantics  similar  to  those  of  function
+      literals [1], as described in N3679.
+      
+      A  local  function  can  access  all  variables  of  the containing
+      function  that are visible at the point of its definition. However,
+      the  use  of  these  variables is restricted so as not to depend on
+      their lifetimes.   
+      
       Tags,  enumerators,  and  functions declared in the enclosing scope
       are  visible  and  can  be used in the return type, parameters, and
       body of the local function.
@@ -179,6 +187,10 @@ ABSTRACT
                goto L1; 
             }
          }
+      
+      (A  GCC  nested  function  can  jump  to  a  label inherited from a
+      containing  function,  provided the label is explicitly declared in
+      the containing function using __label__)  
 
       VM  types  from  the enclosing scope can be used only in the return
       type  and  parameters  of  the  local  function and are not allowed
@@ -192,16 +204,16 @@ ABSTRACT
             }     
          }
 
-      Objects with automatic storage, declared in the enclosing scope and
-      which  are  not  VM  types,  can  be  used  within the return type,
-      arguments,  and function body of local functions, provided they are
-      used in discarded expressions inside the function body. 
+      Objects with automatic storage declared in the enclosing scope, and
+      which  are  not  VLA  types,  can  be  used within the return type,
+      arguments,  and inside the function body, provided they appear only
+      in discarded expressions (expressions whose result is ignored).
 
          Samples:
 
             int main() {      
                int i = 0;
-               void local(void)
+               void local()
                {
                   int j = sizeof(i); // ok               
                }
@@ -209,7 +221,7 @@ ABSTRACT
 
             int main() {
                int i = 0;
-               void local(void) { i = 1; /* error */ }
+               void local() { i = 1; /* error */ }
             }
 
 
@@ -243,13 +255,13 @@ ABSTRACT
 
          int main() {
 
-            struct X { int i; } local(struct Y *y)) 
-            {
-               struct X x = {};
-               return x;
-            }
+           struct X { int i; } local(struct Y *y)
+           {
+              struct X x = {};
+              return x;
+           }
 
-           struct X x; /* ok */
+           struct X x; /* OK */
            struct Y y; /* error */
          }
   
@@ -270,20 +282,27 @@ ABSTRACT
 
 5. REFERENCES
    
-   * N3645 - Literal functions
+   1 N3645 N3679 - Function Literals
      https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3645.pdf
+     https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3679.pdf
    
-   * N3657 - Functions with Data - Closures in C 
+   2 N3657 - Functions with Data - Closures in C 
      https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3657.htm
    
-   * N3654 - Accessing the Context of Nested Functions
+   3 N3654 - Accessing the Context of Nested Functions
      https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3654.pdf
          
-   * GCC - Nested functions
+   4 GCC - Nested functions
      https://gcc.gnu.org/onlinedocs/gcc/Nested-Functions.html
 
-   * 3579 - auto as a placeholder type specifier, v2
+   5 3579 - auto as a placeholder type specifier, v2
      https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3579.htm
+
+   6 Lexical Closures for C++
+     http://www-cs-students.stanford.edu/~blynn/files/lexic.pdf
+   
+   7 Getting around non-executable stack (and fix)
+     https://seclists.org/bugtraq/1997/Aug/63
 
 6. ACKNOWLEDGEMENTS
 
