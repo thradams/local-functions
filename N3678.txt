@@ -136,7 +136,14 @@ ABSTRACT
       would  not  differ  in  syntax  from GCC nested functions. The only
       difference is that captures would not be allowed for standard local
       functions,  and  GCC  nested  functions  would  become an extension
-      concerning only captures.  
+      concerning  only  captures.  This  option is also related to N3679,
+      where 'auto' would no longer serve as a storage qualifier.  
+
+      Captures  for  local functions and function literals are also not a
+      closed  subject,  and this design is still open in many ways. Using
+      'static'  would  restrict  the  design  of  local  functions in its
+      current  form,  and  new options could introduce a new qualifier or
+      reuse the old 'auto'.     
 
    2.2 Semantics
       
@@ -274,6 +281,9 @@ ABSTRACT
          
    * GCC - Nested functions
      https://gcc.gnu.org/onlinedocs/gcc/Nested-Functions.html
+
+   * 3579 - auto as a placeholder type specifier, v2
+     https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3579.htm
 
 6. ACKNOWLEDGEMENTS
 
