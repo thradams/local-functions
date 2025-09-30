@@ -11,7 +11,10 @@ Prior art: GCC Nested functions without capture
 
 ABSTRACT
 
-   This proposal introduces support for defining functions within the definition of other functions.
+   
+This proposal introduces support for defining functions within the definition of other functions, 
+similar to GCC nested functions. The main difference is that, local functions do not form closures.
+   
         
 1.  INTRODUCTION
 
@@ -39,32 +42,94 @@ ABSTRACT
         ...
         function-definition
       
+   The syntax we are proposing is the same of GCC nested function, however we have some design
+   questions.
+
+   Consider this sample:
       
+      void f() { /*extern*/ }
 
-      The only allowed storage specifier is static. the other possible candidates would be auto.
-      that is already used by GCC nested functions. We we will give more details later n the section
-      COMPATIBILITY AND IMPACT.
+      int main() {
+          void f(); /*local*/
+          void f() { }
+          return 0;
+      }
+   
+   We need a way to disambiguate the declaration of the local function f from its external declaration
+   . GCC uses auto for this purpose.
 
+
+     /*GCC nested function sample*/
+      void f() { /*extern*/ }
+
+      int main() {
+          auto void f(); /*local*/
+          void f() { }   /*auto is optional here*/
+          return 0;
+      }
+
+   An option is to adopt the same syntax as GCC nested functions and rely
+   on auto for disambiguation. In this case, when GCC nested functions do
+   not  capture  variables,  they  already  follow the same semantics and
+   syntax as local functions.                                            
+
+   The reason we are not introducing captures is the complexity it brings
+   with  lifetimes  and  compatibility  with normal function pointers, as
+   well  as  concerns  about  the  way GCC nested functions work. In GCC,
+   trampolines  are  a  mechanism  used  to  implement  nested functions.
+   Effectively,  a  trampoline  is a runtime-generated function stub that
+   allows  the  nested function to behave like a normal function pointer.
+   There  are  security  risks  associated  with trampolines because they
+   involve  executable  code  on  the stack. Many modern systems mark the
+   stack  as non-executable to prevent exploits such as buffer overflows.
+   
+   Trampolines   are  only  required  if  the  nested  function  captures
+   variables.  However,  internally,  GCC may still use trampolines even 
+   if variables are  not  captured,  which  remains  a source of security 
+   concerns, as  described   in  N3657,  "Functions  with  Data  –  Closures  in  C  (A
+   Comprehensive  Proposal  Overviewing  Blocks,  Nested  Functions,  and
+   Lambdas). 
+
+   For instance, the code bellow does not have captures. Compiling this 
+   code with -Wtrampolines will confirm the presence of trampolines.
+      
+      //Use -Wtrampolines in GCC
+      #include <stdio.h>
+
+      int main() {
+          void local_without_capture() { printf("hello"); }
+          void (*f)() = local_without_capture;
+          f();
+          return 0;
+      }
+      
+   https://godbolt.org/z/G3bj36693
+   
+  Adding the -O1 optimization option removes both the trampoline and the warning.
+
+  Considering, an alternative design for local function  would be require expliciy
+  the storage qualifier static, or to make the usage of static optional if the programmers
+  wants to explicity mark the funciton as non capture even if some capture is made by mitake 
+  in the GCC compiler.
+  
+
+      void f() { /*extern*/ }
+
+      int main() {
+          static void f(); /*local*/
+          static void f() { } /*static optional or mandatory?*/
+          return 0;
+      }
+
+
+  This is the main design question we have. 
+  
 
    2.2 Semantics
       
-      local function declarations are allowed, but they requires the usage of the storage class specifier static
-      as a way of disambiguiate from extern function declaration.
-
-         void f();
-
-         int main() {      
-            
-            static void f(); //local f
-
-            void f() {
-            
-            }
-         }
 
       Local functions have semantics similar to those of local functions, as described in N3679.
       The scope of the function follows the existing block scope.
-      
 
 
       Tags,  enumerators,  and  functions declared in the enclosing scope
@@ -174,132 +239,8 @@ ABSTRACT
 
 3. COMPATIBILITY AND IMPACT
 
-   The syntax used by local functions is the same as that of GCC nested
-   functions. The big difference is that GCC nested function allow capturing variables
-   by  reference from the enclosing function.
-         
-   When GCC nested functions do not capture variables, both behave the same 
-   way.   However, internally, GCC may still use trampolines  even if variables 
-   are not captured, which are a source of security concerns, as described 
-   in N3657 "Functions with Data – Closures in C (A Comprehensive Proposal 
-   Overviewing Blocks, Nested Functions, and Lambdas)".
-   
-   For instance, the code bellow does not have captures. Compiling this code
-   with -Wtrampolines will confirm the presence of trampolines.
-      
-      //Use -Wtrampolines in GCC
-      #include <stdio.h>
-
-          int main() {
-          void local_without_capture() { printf("hello"); }
-          void (*f)() = local_without_capture;
-          f();
-          return 0;
-      }
-      
-   https://godbolt.org/z/G3bj36693
-   
-   Adding the -O1 optimization option removes both the trampoline and the warning.
-      
-      More details:
-
-      GCC nested function can be used with the auto storage qualifier .
-      For instance:
-
-       int main() {
-           auto void f();
-          
-           auto void f()
-           {
-           }          
-      }
-      
-      The usage of auto in the declaration is necessary to disabiguiation with 
-      the same name extern function.       
-
-      int main() {
-           auto void f();          
-           void f(){}          
-      }
-      void f(){}
-
-      Having the external declaration with local definition is an error:
-
-      int main() {
-           void f();          
-           void f(){} //error: static declaration of 'f' follows non-static declaration          
-      }
-
-   
-   We believe that local functions can be introduzed as an especial case of GCC nested 
-   functions with removing captures and trampolines by definition.  This special and standard
-   case of GCC nested function could expliclty defined with static.
-   
-   int main() {
-           static void f();          
-           static void f(){}          
-      }
-   void f(){}
-
-   We propose the static to be mandatoy of the declaration and optional on the definition.
-   The consequence of this design is that existing GCC nested function that does not have capture
-   and is not using auto storage qualifier become standard code. GCC can keep the extenions without
-   breaking code.
-   
-   int main() {           
-      void f(){ printf("hello"); }          
-    }
-   
-   If capture are not used, users have the choice of uprgande code to because standard by adding static.
-
-
-
-
-   Function declarations definiion using auto are stilll an GCC extension.
-
-
-
-   
-   We propose to diference 
-   this special case by using static storage qualifier and disallow for now auto.
-
-          int main() {
-           static void f();
-          
-           static void f()
-           {
-           }          
-      }
-   
-   The usage of static keeps the GCC nested isolated as extension. In the hipotecical 
-   case consernd   relative of trampolintes are removed in the futre they standard local 
-   function can be updated to the non static version and the existing auto storage qualfier 
-   used by GCC an came back.
-
-
-   We propose the usage of static to be required on the declaraion and optional
-   in the definition.
-
-   Optional vs. Required static in function definition? 
-   
-   1. Require static 
-
-    * Makes it explicit that local functions differ from GCC nested functions.
-    * expliciyly indicates that the code is free of trampolines.
-
-   2. Optional static
-
-     * Allows existing code that uses GCC nested functions without captures 
-       to become valid standard code automatically. 
-
-     * Provides smoother migration for existing users. 
-
-     * Also could change default in the future. Lets say now the default for 
-       local functio is static. In case some proposals finds a way of removing conscerns abvout trampolines, 
-       then the default could be not static (as static being an special case)
-
-
-
+   Compatibilies and impact where already discussed on the syntax section, where
+   the main question is the interecation with the existing GCC nested functions.
    
 
 4. EXISTING IMPLEMENTATIONS
@@ -327,3 +268,4 @@ ABSTRACT
 
    I would like to recognize the following people for their help in this
    work: Martin Uecker, Alejandro Colomar, Jens Gustedt.
+
