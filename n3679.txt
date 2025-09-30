@@ -144,7 +144,11 @@ ABSTRACT
             &(void (void)){} = 0;  /* error: lvalue required */
          }
 
-      
+      Function  literals  can  access  all  variables  of  the containing
+      function  that are visible at the point of its definition. However,
+      the  use  of  these  variables is restricted so as not to depend on
+      their lifetimes.          
+
       Tags,  enumerators,  and  functions declared in the enclosing scope
       are  visible  and  can  be used in the return type, parameters, and
       body of the function literal.     
@@ -363,9 +367,23 @@ ABSTRACT
 
 7. REFERENCES
 
-   * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3550.pdf  
-   * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2661.pdf
-   * https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2924.pdf
+   1 N3645 - Literal functions
+     https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3645.pdf
+
+   2 N2924 - Type-generic lambdas
+     https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2924.pdf
+
+   3 N2661 - Nested Functions
+     https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2661.pdf
+
+   4 N3678 - Local functions
+     https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3678.pdf
+
+   5 N3657 - Functions with Data - Closures in C 
+     https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3657.htm
+
+   6 N3654 - Accessing the Context of Nested Functions
+     https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3654.pdf
 
 8. WORDING
    The wording for this proposal has not yet been provided, as it has not

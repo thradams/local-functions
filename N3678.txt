@@ -125,8 +125,8 @@ ABSTRACT
          void f() { /*extern*/ }
 
          int main() {
-             static void f(); /*local*/
-             static void f() { } /*static optional or mandatory?*/
+             static void f();    /* local */
+             static void f() { } /* static optional or mandatory? */
              return 0;
          }
       
@@ -148,6 +148,10 @@ ABSTRACT
       'static'  would  restrict  the  design  of  local  functions in its
       current  form,  and  new options could introduce a new qualifier or
       reuse the old 'auto'.     
+      
+      The static storage qualifier was also proposed in N3654 - Accessing
+      the  Context  of  Nested Functions [3]- which presents alternatives
+      for nested functions without trampolines.  
 
    2.2 Semantics
       
@@ -304,7 +308,14 @@ ABSTRACT
    7 Getting around non-executable stack (and fix)
      https://seclists.org/bugtraq/1997/Aug/63
 
-6. ACKNOWLEDGEMENTS
+   8 N2661 Nested Functions
+     https://www.open-std.org/jtc1/sc22/wg14/www/docs/n2661.pdf
+
+6. WORDING
+   The wording for this proposal has not yet been provided, as it has not
+   yet been voted on for direction. 
+
+7. ACKNOWLEDGEMENTS
 
    I would like to recognize the following people for their help in this
    work: Martin Uecker, Alejandro Colomar, Jens Gustedt.
