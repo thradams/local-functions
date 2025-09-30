@@ -215,7 +215,7 @@ ABSTRACT
 
       Objects  with static storage duration declared at file or enclosing
       scope  are  visible  and can be used in the return type, arguments,
-      and body of a local function.  (TODO thread_local?)
+      and body of a local function.
 
          int g;
          int main() {
