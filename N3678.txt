@@ -1,7 +1,7 @@
 ---------------------- N3678 Local functions ---------------------------
 
 Author : Thiago R Adams  
-Date   : 2025-08-05  
+Date   : 2025-09-30
 Project: ISO/IEC JTC 1/SC 22/WG 14  
 Title  : Local functions
 Target audience: Implementers, users
