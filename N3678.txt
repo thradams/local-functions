@@ -8,12 +8,12 @@ Target audience: Implementers, users
 Prior art: GCC Nested functions without capture
 
 
-
 ABSTRACT
-
    
-This proposal introduces support for defining functions within the definition of other functions, 
-similar to GCC nested functions. The main difference is that, local functions do not form closures.
+   This  proposal  introduces support for defining functions inside other
+   function  definitions,  similar  to  GCC  nested functions. Unlike GCC
+   nested  functions,  local  functions  do  not form closures and do not
+   capture variables.  
    
         
 1.  INTRODUCTION
@@ -30,9 +30,9 @@ similar to GCC nested functions. The main difference is that, local functions do
 
     - Complements function literals N3679
 
-   Following the same principles as N3679, this proposal avoids 
-   introducing closures (captures), keeping the semantics  simple and
-   compatible with C's execution and memory model.
+   Following   the   same  principles  as  N3679,  this  proposal  avoids
+   introducing  closures  (captures),  keeping  the  semantics simple and
+   compatible with C's execution and memory model.  
 
 2. SYNTAX AND SEMANTICS
 
@@ -42,99 +42,111 @@ similar to GCC nested functions. The main difference is that, local functions do
         ...
         function-definition
       
-   The syntax we are proposing is the same of GCC nested function, however we have some design
-   questions.
+      The  syntax  we  are proposing is the same as GCC nested functions;
+      however, we have some design questions.                          
 
-   Consider this sample:
+      Consider this sample: 
       
-      void f() { /*extern*/ }
+         void f() { /* external */ }
 
-      int main() {
-          void f(); /*local*/
-          void f() { }
-          return 0;
-      }
+         int main() {
+             void f();   /* local declaration */
+             void f() {  /* local definition */
+                 /* ... */
+             }
+             return 0;
+         }
    
-   We need a way to disambiguate the declaration of the local function f from its external declaration
-   . GCC uses auto for this purpose.
+      We need a way to disambiguate the declaration of the local function
+      'f' from its external declaration. GCC uses auto for this purpose. 
 
+         /* GCC nested function sample */
 
-     /*GCC nested function sample*/
-      void f() { /*extern*/ }
+         void f() { /*extern*/ }
 
-      int main() {
-          auto void f(); /*local*/
-          void f() { }   /*auto is optional here*/
-          return 0;
-      }
+         int main() {
+               auto void f(); /*local*/
+               void f() { }   /*auto is optional here*/
+               return 0;
+         }
 
-   An option is to adopt the same syntax as GCC nested functions and rely
-   on auto for disambiguation. In this case, when GCC nested functions do
-   not  capture  variables,  they  already  follow the same semantics and
-   syntax as local functions.                                            
+      An  option  is to adopt the same syntax as GCC nested functions and
+      rely  on  auto  for  disambiguation.  In this case, when GCC nested
+      functions  do  not  capture variables, they already follow the same
+      semantics and syntax as local functions.                           
 
-   The reason we are not introducing captures is the complexity it brings
-   with  lifetimes  and  compatibility  with normal function pointers, as
-   well  as  concerns  about  the  way GCC nested functions work. In GCC,
-   trampolines  are  a  mechanism  used  to  implement  nested functions.
-   Effectively,  a  trampoline  is a runtime-generated function stub that
-   allows  the  nested function to behave like a normal function pointer.
-   There  are  security  risks  associated  with trampolines because they
-   involve  executable  code  on  the stack. Many modern systems mark the
-   stack  as non-executable to prevent exploits such as buffer overflows.
+      The  reason  we  are  not introducing captures is the complexity it
+      brings  with  lifetimes  and  compatibility  with  normal  function
+      pointers,  as  well  as concerns about the way GCC nested functions
+      work.  In GCC, trampolines are a mechanism used to implement nested
+      functions.                                                         
+
+      Effectively, a trampoline is a runtime-generated function stub that
+      allows  the  nested  function  to  behave  like  a  normal function
+      pointer.  There  are  security  risks  associated  with trampolines
+      because  they  involve  executable  code  on the stack. Many modern
+      systems  mark  the stack as non-executable to prevent exploits such
+      as buffer overflows.                                               
+
+      Trampolines  are  only  required  if  the  nested function captures
+      variables.  However, internally, GCC may still use trampolines even
+      if  variables  are not captured, which remains a source of security
+      concerns.                                                          
+
+      For instance, the code below does not have captures. Compiling this
+      code with -Wtrampolines will confirm the presence of trampolines. 
    
-   Trampolines   are  only  required  if  the  nested  function  captures
-   variables.  However,  internally,  GCC may still use trampolines even 
-   if variables are  not  captured,  which  remains  a source of security 
-   concerns, as  described   in  N3657,  "Functions  with  Data  –  Closures  in  C  (A
-   Comprehensive  Proposal  Overviewing  Blocks,  Nested  Functions,  and
-   Lambdas). 
-
-   For instance, the code bellow does not have captures. Compiling this 
-   code with -Wtrampolines will confirm the presence of trampolines.
-      
-      //Use -Wtrampolines in GCC
+      /* Use -Wtrampolines in GCC */
       #include <stdio.h>
 
       int main() {
-          void local_without_capture() { printf("hello"); }
-          void (*f)() = local_without_capture;
+          void local() { printf("hello"); }
+          void (*f)() = local;
           f();
           return 0;
       }
-      
-   https://godbolt.org/z/G3bj36693
+
+      https://godbolt.org/z/dT87xEsq7
    
-  Adding the -O1 optimization option removes both the trampoline and the warning.
+      Adding  the -O1 optimization option removes both the trampoline and
+      the warning.                                                       
 
-  Considering, an alternative design for local function  would be require expliciy
-  the storage qualifier static, or to make the usage of static optional if the programmers
-  wants to explicity mark the funciton as non capture even if some capture is made by mitake 
-  in the GCC compiler.
+      One  alternative design for local functions would be to require the
+      storage  qualifier static explicitly, or to make its usage optional
+      if  the  programmer  wishes  to mark the function as non-capturing.
+      This  would,  for instance, prevent accidental captures in GCC. The
+      same   qualifier   could   then   be   used  in  the  corresponding
+      declarations.    
   
+         void f() { /*extern*/ }
 
-      void f() { /*extern*/ }
-
-      int main() {
-          static void f(); /*local*/
-          static void f() { } /*static optional or mandatory?*/
-          return 0;
-      }
-
-
-  This is the main design question we have. 
-  
+         int main() {
+             static void f(); /*local*/
+             static void f() { } /*static optional or mandatory?*/
+             return 0;
+         }
+      
+      In  practice,  'auto'  would  not  be  allowed  in  local  function
+      declarations  and  definitions. If 'static' is optional in function
+      definitions,  then  function definitions would have the same syntax
+      as  GCC when 'auto' is not used. Function declarations would always
+      differ.  
+      
+      Alternatively,  we  can  continue using 'auto', and local functions
+      would  not  differ  in  syntax  from GCC nested functions. The only
+      difference is that captures would not be allowed for standard local
+      functions,  and  GCC  nested  functions  would  become an extension
+      concerning only captures.  
 
    2.2 Semantics
       
-
-      Local functions have semantics similar to those of local functions, as described in N3679.
-      The scope of the function follows the existing block scope.
-
+      Local functions have semantics similar to those of local functions,
+      as  described  in  N3679.  The  scope  of  the function follows the
+      existing block scope.                                              
 
       Tags,  enumerators,  and  functions declared in the enclosing scope
       are  visible  and  can  be used in the return type, parameters, and
-      body of the local function.     
+      body of the local function.
 
          int main() {      
             
@@ -149,10 +161,10 @@ similar to GCC nested functions. The main difference is that, local functions do
             }
          }
 
-      Labels from the enclosing scope are NOT visible inside the local
-      function body.  
+      Labels  from  the  enclosing scope are NOT visible inside the local
+      function body.    
 
-        int main() {      
+         int main() {      
             L1:;
             void local(void)
             {
@@ -162,7 +174,7 @@ similar to GCC nested functions. The main difference is that, local functions do
          }
 
       VM  types  from  the enclosing scope can be used only in the return
-      type  and  parameters  of  the local function and are not allowed
+      type  and  parameters  of  the  local  function and are not allowed
       inside the local function body. 
       
          int f(int n) {
@@ -175,23 +187,23 @@ similar to GCC nested functions. The main difference is that, local functions do
 
       Objects with automatic storage, declared in the enclosing scope and
       which  are  not  VM  types,  can  be  used  within the return type,
-      arguments,  and  function  body of local functions, provided they
-      are used in discarded expressions inside the function body.
+      arguments,  and function body of local functions, provided they are
+      used in discarded expressions inside the function body. 
 
-      Samples:
+         Samples:
 
-         int main() {      
-            int i = 0;
-            void local(void)
-            {
-               int j = sizeof(i); // ok               
+            int main() {      
+               int i = 0;
+               void local(void)
+               {
+                  int j = sizeof(i); // ok               
+               }
             }
-         }
 
-         int main() {
-            int i = 0;
-            void local(void){ i = 1; /* error */ }
-         }
+            int main() {
+               int i = 0;
+               void local(void) { i = 1; /* error */ }
+            }
 
 
       Objects  with static storage duration declared at file or enclosing
@@ -211,15 +223,14 @@ similar to GCC nested functions. The main difference is that, local functions do
          }
 
       The  value of __func__ is an implementation-defined null-terminated
-      string  when  used  inside  local functions. For comparison, GCC 
-      returns the name of the function.
-      
-      
-      A  type  declared  in  the  result  of  a  local function has the
-      enclosing scope, either block or file scope.                       
+      string  when  used  inside  local  functions.  For  comparison, GCC
+      returns the name of the function.                                  
 
-      A type declared within the parameter list of a local function has
-      block scope, which is the local function body itself.  
+      A type declared in the result of a local function has the enclosing
+      scope, either block or file scope.                                 
+
+      A  type  declared within the parameter list of a local function has
+      block scope, which is the local function body itself. 
 
       Sample:
 
@@ -239,9 +250,9 @@ similar to GCC nested functions. The main difference is that, local functions do
 
 3. COMPATIBILITY AND IMPACT
 
-   Compatibilies and impact where already discussed on the syntax section, where
-   the main question is the interecation with the existing GCC nested functions.
-   
+   Compatibility and impact were already discussed in the syntax section,
+   where  the  main  question is the interaction with existing GCC nested
+   functions.    
 
 4. EXISTING IMPLEMENTATIONS
 
