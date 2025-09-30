@@ -175,7 +175,7 @@ ABSTRACT
             L1:;
             void local(void)
             {
-               // error: label 'L1' used but not defined
+               /* error: label 'L1' used but not defined */
                goto L1; 
             }
          }
@@ -249,7 +249,7 @@ ABSTRACT
                return x;
             }
 
-           struct X x; // ok
+           struct X x; /* ok */
            struct Y y; /* error */
          }
   
