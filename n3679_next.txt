@@ -121,7 +121,9 @@ ABSTRACT
          function-literal     
   
       function-literal:
-         ( attribute-specifier-sequence opt type-specifier-qualifier ( parameter-type-list opt ) ) function-body 
+         ( attribute-specifier-sequence opt type-specifier-qualifier 
+            ( parameter-type-list opt ) ) 
+              function-body 
  
    The  syntax  is  ambiguous  with  a compound literal of function type;
    however, function types are not valid compound literals. Consequently,
