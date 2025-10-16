@@ -10,6 +10,9 @@ Prior art: C++ lambdas without capture
 
 SUMMARY OF CHANGES
 
+   * N3XXX
+      - Grammar changed
+
    * N3679 
       - "literal functions" renamed to "function literals"  
       - Removed qsort and thrd_create samples  
@@ -118,11 +121,11 @@ ABSTRACT
          function-literal     
   
       function-literal:
-         ( type-name ) function-body 
+         ( attribute-specifier-sequence opt type-specifier-qualifier ( parameter-type-list opt ) ) function-body 
  
-   The   syntax   is   ambiguous   with   that  of  a  compound  literal.
-   Disambiguation is based on the type: function literals have a function
-   type, whereas compound literals do not.                               
+   The  syntax  is  ambiguous  with  a compound literal of function type;
+   however, function types are not valid compound literals. Consequently,
+   what was formerly an error is now interpreted as a function literal.
 
    Function-specifiers  (_Noreturn,  inline) and storage-class specifiers
    (auto, constexpr, extern, register, static, thread_local, typedef) are
