@@ -121,13 +121,17 @@ ABSTRACT
          function-literal     
   
       function-literal:
-         ( attribute-specifier-sequence opt type-specifier-qualifier 
-            ( parameter-type-list opt ) ) 
-              function-body 
+         ( attribute-specifier-sequence opt 
+            declaration-specifiers abstract-declarator  ) 
+               attribute-specifier-sequence opt 
+                  function-body 
  
+   The abstract declarator shall declare a function. 
+
    The  syntax  is  ambiguous  with  a compound literal of function type;
    however, function types are not valid compound literals. Consequently,
    what was formerly an error is now interpreted as a function literal.
+
 
    Function-specifiers  (_Noreturn,  inline) and storage-class specifiers
    (auto, constexpr, extern, register, static, thread_local, typedef) are
