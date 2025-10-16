@@ -149,10 +149,10 @@ ABSTRACT
             &(void (void)){} = 0;  /* error: lvalue required */
          }
 
-      Function  literals  can  access  all  variables  of  the containing
-      function  that are visible at the point of its definition. However,
-      the  use  of  these  variables is restricted so as not to depend on
-      their lifetimes.          
+      When defined within another function, function literals may access all
+      variables  of  the enclosing function that are visible at the point of
+      definition.  However,  such access is restricted to prevent dependence
+      on the lifetimes of those variables.    
 
       Tags,  enumerators,  and  functions declared in the enclosing scope
       are  visible  and  can  be used in the return type, parameters, and
