@@ -168,8 +168,9 @@ ABSTRACT
             }(A);
          }
 
-      Labels from the enclosing scope are NOT visible inside the function
-      literal body.  
+      Labels  from the enclosing function are not visible within the body
+      of a function literal. Labels defined inside a function literal are
+      likewise limited in scope to that function literal.
 
         int main() {      
             L1:;
@@ -223,11 +224,18 @@ ABSTRACT
             (void (void)) { g = 1; /* ok */ }();
          }
 
+
          int main() {
             static int i = 0;
             (void ()){ 
                i = 1; /* ok */ 
             }();      
+         }     
+         
+         int g;
+         auto f = (int ()) { return g; }
+         int main() {
+            f();
          }
 
       The  value of __func__ is an implementation-defined null-terminated
