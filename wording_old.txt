@@ -1,3 +1,21 @@
+
+6.4.2.2 Predefined identifiers
+
+Semantics
+
+   The identifier __func__ shall be implicitly declared by the translator
+   as  if,  immediately  following  the  opening  brace  of each function
+   definition, the declaration
+
+   static const char __func__[] = "function-name";
+
+   appeared,  where  function-name is the name of the lexically-enclosing
+   function.66)
+
+
+
+[...]
+
  (6.5.3.1) postfix-expression:
 
     primary-expression
@@ -28,6 +46,15 @@ Syntax
     unlabeled-statement
     label
 
+6.9 External definitions
+[...]
+
+   external-declaration:
+       function-definition
+       declaration
+
+[...]
+
 6.9.2 Function definitions
 
 Syntax
@@ -36,7 +63,8 @@ Syntax
 
     function-body:
          compound-statement
-   Constraints
+
+Constraints
 
    2  The identifier declared in a function definition (which is the name
    of  the  function)  shall  have  a  function type, as specified by the
@@ -88,3 +116,33 @@ Syntax
    13  Unless  otherwise specified, if the } that terminates the function
    body  is  reached,  and  the value of the function call is used by the
    caller, the behavior is undefined.
+
+
+
+A.3 Phrase structure grammar
+[...]
+
+ (6.5.3.1) postfix-expression:
+
+    primary-expression
+    postfix-expression [ expression ]
+    postfix-expression ( argument-expression-listopt )
+    postfix-expression . identifier
+    postfix-expression -> identifier
+    postfix-expression ++
+    postfix-expression --
+    compound-literal
+    function-literal
+
+
+[...]
+
+ (6.9.1) external-declaration:
+
+    external-function-definition
+    declaration
+
+(6.9.2) external-function-definition:
+    attribute-specifier-sequenceopt declaration-specifiers declarator function-body
+
+

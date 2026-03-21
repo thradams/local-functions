@@ -1,4 +1,22 @@
- (6.5.3.1) postfix-expression:
+
+6.4.2.2 Predefined identifiers
+
+Semantics
+
+   The identifier __func__ shall be implicitly declared by the translator
+   as  if,  immediately  following  the  opening  brace  of each function
+   definition, the declaration
+
+   static const char __func__[] = "function-name";
+
+   appeared,  where  function-name is the name of the lexically-enclosing
+   function.66)
+
+   For function literals, the function-name is unspecified.
+
+[...]
+
+(6.5.3.1) postfix-expression:
 
     primary-expression
     postfix-expression [ expression ]
@@ -10,6 +28,40 @@
     compound-literal
     function-literal
 
+6.5.x Function literal
+
+Syntax
+
+    function-literal:
+       (attribute-specifier-sequenceopt declaration-specifiers
+           abstract-declarator) function-body
+
+    function-body:
+       compound-statement
+
+Constraints
+
+   - The abstract-declarator shall declare a function type.
+   
+   -  The  function-specifier, if any, in the function specifiers 
+      shall be _Noreturn.
+   
+   -  The  storage-class specifier in the function specifiers 
+      shall be not used. (Used only to keep the grammar in sync)
+
+Semantics
+   
+   - The function literal is a function designator.
+   
+   - Distinct function literals are not required to have unique addresses
+     Note:This allows implementations to reuse the same function literal, which
+     is important to avoid code bloat caused by function literals inside
+     function-like macros.
+
+  -  Semeantics from function definitions that are applied to function literal are
+     described at function definiitons.
+
+
 6.7.5 Function specifiers
 
 Syntax
@@ -20,7 +72,7 @@ Syntax
  Constraints
 
    2  Function  specifiers  shall  be  used only in the declaration of an
-   identifier for a function. Function-literals shall not use function specifiers.
+   identifier for a function.
 
 
 (6.8.3) block-item:
@@ -31,43 +83,47 @@ Syntax
     function-definition
 
 
+6.9 External definitions
+[...]
+
+   external-declaration:
+       function-definition
+       declaration
+
+[...]
+
 6.9.2 Function definitions
 
 Syntax
-
-    function-literal:
-       (attribute-specifier-sequenceopt declaration-specifiers 
-           abstract-declarator) function-body
-
     function-definition:
         attribute-specifier-sequenceopt declaration-specifiers declarator function-body
 
     function-body:
          compound-statement
 
+  
+Functions can be external or locally defined.
 
-   Constraints
+Constraints
 
    2  The identifier declared in a function definition (which is the name
    of  the  function)  shall  have  a  function type, as specified by the
-   declarator portion of the function definition For function-literals,    
-   the abstract-declarator shall  have a function type.
-      
+   declarator portion of the function definition.
+
    3  The  return  type  of a function shall be void or a complete object
    type other than array type.
 
    4  The  storage-class specifier, if any, in the declaration specifiers
-   for non local functions definition shall be either extern or static.
-   Local function definition must have the static storage-class specifier.
-   
+   of a function defined at tile scope shall be either extern or static.
+   For local functions, it must use static.
 
    5  If  the parameter list consists of a single parameter of type void,
    the parameter declarator shall not include an identifier.
 
    6 Variable length array types of unspecified size shall not be used as
-   part of a parameter declaration in a non local function definition.
+   part of a parameter declaration in a function definition.
 
-   Semantics
+Semantics
 
    7  The  optional attribute specifier sequence in a function definition
    appertains to the function.
@@ -94,10 +150,54 @@ Syntax
    converted  to  the  type  of  the  corresponding  parameter  as  if by
    assignment.  (Array  expressions and function designators as arguments
    were converted to pointers before the call.)
+   
+   12 For local defined functions using a variably modified  return type, 
+   the VM types are evaluated at the point of function definition.
 
-   12  After all parameters have been assigned, the compound statement of
+   13  After all parameters have been assigned, the compound statement of
    the function body is executed.
 
-   13  Unless  otherwise specified, if the } that terminates the function
+   14  Unless  otherwise specified, if the } that terminates the function
    body  is  reached,  and  the value of the function call is used by the
    caller, the behavior is undefined.
+
+   15 Labels from the enclosing function are not shared beteen the enclusing f
+   function and the local defined functions.
+
+   15 The variables;tab;enumerbers from the enclosing function are accessible
+     in the body of the localled defined function 
+   
+   16 Object with automatica storage duration from tehe enclosing function are
+   visible. Constexpr objects can be evaluated inside the body of the local funcatio
+   but they become non lvalues. Non constexpr objects with automatic durarion
+   from the enclosing function cannot be evaluated inside the body of local function.
+   
+
+
+
+A.3 Phrase structure grammar
+[...]
+
+ (6.5.3.1) postfix-expression:
+
+    primary-expression
+    postfix-expression [ expression ]
+    postfix-expression ( argument-expression-listopt )
+    postfix-expression . identifier
+    postfix-expression -> identifier
+    postfix-expression ++
+    postfix-expression --
+    compound-literal
+    function-literal
+
+
+[...]
+
+ (6.9.1) external-declaration:
+
+    external-function-definition
+    declaration
+
+(6.9.2) external-function-definition:
+    attribute-specifier-sequenceopt declaration-specifiers declarator function-body
+
