@@ -1,0 +1,103 @@
+ (6.5.3.1) postfix-expression:
+
+    primary-expression
+    postfix-expression [ expression ]
+    postfix-expression ( argument-expression-list opt )
+    postfix-expression . identifier
+    postfix-expression -> identifier
+    postfix-expression ++
+    postfix-expression --
+    compound-literal
+    function-literal
+
+6.7.5 Function specifiers
+
+Syntax
+      function-specifier:
+            inline
+           _Noreturn
+
+ Constraints
+
+   2  Function  specifiers  shall  be  used only in the declaration of an
+   identifier for a function. Function-literals shall not use function specifiers.
+
+
+(6.8.3) block-item:
+
+    declaration
+    unlabeled-statement
+    label
+    function-definition
+
+
+6.9.2 Function definitions
+
+Syntax
+
+    function-literal:
+       (attribute-specifier-sequenceopt declaration-specifiers 
+           abstract-declarator) function-body
+
+    function-definition:
+        attribute-specifier-sequenceopt declaration-specifiers declarator function-body
+
+    function-body:
+         compound-statement
+
+
+   Constraints
+
+   2  The identifier declared in a function definition (which is the name
+   of  the  function)  shall  have  a  function type, as specified by the
+   declarator portion of the function definition For function-literals,    
+   the abstract-declarator shall  have a function type.
+      
+   3  The  return  type  of a function shall be void or a complete object
+   type other than array type.
+
+   4  The  storage-class specifier, if any, in the declaration specifiers
+   for non local functions definition shall be either extern or static.
+   Local function definition must have the static storage-class specifier.
+   
+
+   5  If  the parameter list consists of a single parameter of type void,
+   the parameter declarator shall not include an identifier.
+
+   6 Variable length array types of unspecified size shall not be used as
+   part of a parameter declaration in a non local function definition.
+
+   Semantics
+
+   7  The  optional attribute specifier sequence in a function definition
+   appertains to the function.
+
+   8  The  declarator  in a function definition specifies the name of the
+   function being defined and the types (and optionally the names) of all
+   the parameters; the declarator also serves as a function prototype for
+   later  calls  to  the  same function in the same translation unit. The
+   type of each parameter is adjusted as described in 6.7.7.4.
+
+   9 If a function that accepts a variable number of arguments is defined
+   without  a  parameter  type list that ends with the ellipsis notation,
+   the behavior is undefined.
+
+   10  The  parameter  type list, the attribute specifier sequence of the
+   declarator  that  follows  the  parameter  type list, and the compound
+   statement of the function body form a single block.192) Each parameter
+   has  automatic  storage  duration;  its  identifier, if any,193) is an
+   lvalue.194) The layout of the storage for parameters is unspecified.
+
+   11  On  entry  to  the function, the size expressions of each variably
+   modified  parameter  and  typeof  operators  used  in  declarations of
+   parameters  are evaluated and the value of each argument expression is
+   converted  to  the  type  of  the  corresponding  parameter  as  if by
+   assignment.  (Array  expressions and function designators as arguments
+   were converted to pointers before the call.)
+
+   12  After all parameters have been assigned, the compound statement of
+   the function body is executed.
+
+   13  Unless  otherwise specified, if the } that terminates the function
+   body  is  reached,  and  the value of the function call is used by the
+   caller, the behavior is undefined.
