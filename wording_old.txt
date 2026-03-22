@@ -132,17 +132,23 @@ A.3 Phrase structure grammar
     postfix-expression ++
     postfix-expression --
     compound-literal
-    function-literal
+
+[...]
+
+ (6.8.3) block-item:
+    declaration
+    unlabeled-statement
+    label
 
 
 [...]
 
  (6.9.1) external-declaration:
 
-    external-function-definition
+    function-definition
     declaration
 
-(6.9.2) external-function-definition:
+(6.9.2) function-definition:
     attribute-specifier-sequenceopt declaration-specifiers declarator function-body
 
 

@@ -47,16 +47,13 @@ Constraints
       shall be _Noreturn.
    
    -  The  storage-class specifier in the function specifiers 
-      shall be not used. (Used only to keep the grammar in sync)
+      shall be not used.
 
 Semantics
    
    - The function literal is a function designator.
    
    - Distinct function literals are not required to have unique addresses
-     Note:This allows implementations to reuse the same function literal, which
-     is important to avoid code bloat caused by function literals inside
-     function-like macros.
 
   -  Semeantics from function definitions that are applied to function literal are
      described at function definiitons.
@@ -190,14 +187,25 @@ A.3 Phrase structure grammar
     compound-literal
     function-literal
 
+ (6.5.x.x) function-literal:
+    (attribute-specifier-sequenceopt declaration-specifiers
+        abstract-declarator) function-body
+
+[...]
+
+ (6.8.3) block-item:
+    declaration
+    unlabeled-statement
+    label
+    function-definition
 
 [...]
 
  (6.9.1) external-declaration:
 
-    external-function-definition
+    function-definition
     declaration
 
-(6.9.2) external-function-definition:
+(6.9.2) function-definition:
     attribute-specifier-sequenceopt declaration-specifiers declarator function-body
 
