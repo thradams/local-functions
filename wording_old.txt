@@ -18,9 +18,7 @@ Semantics
 [...]
 
 
-[...]
-
- (6.5.3.1) postfix-expression:
+(6.5.3.1) postfix-expression:
 
     primary-expression
     postfix-expression [ expression ]

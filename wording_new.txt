@@ -31,7 +31,7 @@ Semantics
     compound-literal
     function-literal
 
-6.5.3.7  Function literal
+6.5.3.7 Function literal
 
 Syntax
 
@@ -102,10 +102,9 @@ Syntax
          compound-statement
 
   
-   Functions  can  be  defined as an external declaration or inside other
-   function  as  block item. Function literals also shares constrains and
-   sementaics with function definiton.
-
+   Functions  can  be defined either as external declarations or as block
+   items  within  other  functions.  Function literals also share certain
+   constraints and semantics with function definitions.
 
 Constraints
 
@@ -113,24 +112,25 @@ Constraints
    of  the  function)  shall  have  a  function type, as specified by the
    declarator portion of the function definition.
 
-   3  The  return  type  of a function shall be void or a complete object
-   type other than array type.
+   3  The  return  type  of a function or function literal shall be  void 
+   or a complete object type other than array type.
 
    4  The  storage-class specifier, if any, in the declaration specifiers
-   of  a  external  function  scope shall be either extern or static. For
-   localy  defined  function,  it  must  be static and empty for function
-   literals.
+   of  a  external defined function shall be either extern or static. 
+   For block defined  functions, it  must be static. 
 
    5  If  the parameter list consists of a single parameter of type void,
-   the parameter declarator shall not include an identifier.
+   the parameter declarator shall not include an identifier. This also, 
+   applies for function literals.
 
    6 Variable length array types of unspecified size shall not be used as
-   part of a parameter declaration in a function definition.
+   part of a parameter declaration in a function definition.This also, 
+   applies for function literals.
 
    Semantics
 
    7  The  optional attribute specifier sequence in a function definition
-   appertains to the function.
+   appertains to the function or function literal.
 
    8  The  declarator  in a function definition specifies the name of the
    function being defined and the types (and optionally the names) of all
@@ -138,22 +138,24 @@ Constraints
    later  calls  to  the  same function in the same translation unit. The
    type of each parameter is adjusted as described in 6.7.7.4.
 
-   9 If a function that accepts a variable number of arguments is defined
-   without  a  parameter  type list that ends with the ellipsis notation,
-   the behavior is undefined.
+   9  If a function or function literal that accepts a variable number of
+   arguments  is defined without a parameter type list that ends with the
+   ellipsis notation, the behavior is undefined.
 
    10  The  parameter  type list, the attribute specifier sequence of the
    declarator  that  follows  the  parameter  type list, and the compound
    statement of the function body form a single block.192) Each parameter
    has  automatic  storage  duration;  its  identifier, if any,193) is an
    lvalue.194) The layout of the storage for parameters is unspecified.
+   This also applies for function literals.
 
    11  On  entry  to  the function, the size expressions of each variably
    modified  parameter  and  typeof  operators  used  in  declarations of
    parameters  are evaluated and the value of each argument expression is
    converted  to  the  type  of  the  corresponding  parameter  as  if by
    assignment.  (Array  expressions and function designators as arguments
-   were converted to pointers before the call.)
+   were  converted  to  pointers before the call.). This also applies for
+   function literals.
 
    12  For  localy  defined  functions  and  non extern function literals
    expressions  using  variably modified as return type, the VM types are
@@ -167,14 +169,14 @@ Constraints
    caller, the behavior is undefined.
 
    15  Labels  declared  in an enclosing function are not shared with any
-   locally defined function or function literal.
+   block defined function or function literal.
 
    16  Variables, tags, and enumerators declared in an enclosing function
    are  accessible  within  the  body  of  a  locally defined function or
    function literal.
 
    17  An object with automatic storage duration declared in an enclosing
-   function  shall  not be evaluated within a locally defined function or
+   function  shall  not be evaluated within a block defined  function  or
    function  literal.  An  exception is made for constexpr objects, which
    may  be  evaluated as if they were named constants and not lvalues; in
    particular, their address shall not be taken.
