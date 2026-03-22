@@ -1,5 +1,7 @@
 
-6.4.2.2 Predefined identifiers
+based on n3854.pdf
+
+6.4.3.2 Predefined identifiers
 
 Semantics
 
@@ -10,8 +12,10 @@ Semantics
    static const char __func__[] = "function-name";
 
    appeared,  where  function-name is the name of the lexically-enclosing
-   function.66)
+   function.50)
 
+
+[...]
 
 
 [...]

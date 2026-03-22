@@ -1,5 +1,7 @@
 
-6.4.2.2 Predefined identifiers
+based on n3854.pdf
+
+6.4.3.2 Predefined identifiers
 
 Semantics
 
@@ -10,11 +12,12 @@ Semantics
    static const char __func__[] = "function-name";
 
    appeared,  where  function-name is the name of the lexically-enclosing
-   function.66)
+   function.50)
 
    For function literals, the function-name is unspecified.
 
 [...]
+
 
 (6.5.3.1) postfix-expression:
 
@@ -28,12 +31,12 @@ Semantics
     compound-literal
     function-literal
 
-6.5.x Function literal
+6.5.3.7  Function literal
 
 Syntax
 
     function-literal:
-       (attribute-specifier-sequenceopt declaration-specifiers
+       (attribute-specifier-sequence opt declaration-specifiers
            abstract-declarator) function-body
 
     function-body:
@@ -41,22 +44,22 @@ Syntax
 
 Constraints
 
-   - The abstract-declarator shall declare a function type.
-   
-   -  The  function-specifier, if any, in the function specifiers 
-      shall be _Noreturn.
-   
-   -  The  storage-class specifier in the function specifiers 
-      shall be not used.
+   1 The abstract-declarator shall declare a function type.
+
+   2  The function-specifier, if any, in the function specifiers shall be
+   _Noreturn.
+
+   3  The storage-class specifier in the function specifiers shall not be
+   used.
 
 Semantics
-   
-   - The function literal is a function designator.
-   
-   - Distinct function literals are not required to have unique addresses
 
-  -  Semeantics from function definitions that are applied to function literal are
-     described at function definiitons.
+   4 The function literal is a function designator.
+
+   5 Distinct function literals are not required to have unique addresses
+
+   6  Semantics from function definitions that apply to function literals
+   are described in the section on function definitions.
 
 
 6.7.5 Function specifiers
@@ -99,7 +102,10 @@ Syntax
          compound-statement
 
   
-Functions can be external or locally defined.
+   Functions  can  be  defined as an external declaration or inside other
+   function  as  block item. Function literals also shares constrains and
+   sementaics with function definiton.
+
 
 Constraints
 
@@ -111,8 +117,9 @@ Constraints
    type other than array type.
 
    4  The  storage-class specifier, if any, in the declaration specifiers
-   of a function defined at tile scope shall be either extern or static.
-   For local functions, it must use static.
+   of  a  external  function  scope shall be either extern or static. For
+   localy  defined  function,  it  must  be static and empty for function
+   literals.
 
    5  If  the parameter list consists of a single parameter of type void,
    the parameter declarator shall not include an identifier.
@@ -120,7 +127,7 @@ Constraints
    6 Variable length array types of unspecified size shall not be used as
    part of a parameter declaration in a function definition.
 
-Semantics
+   Semantics
 
    7  The  optional attribute specifier sequence in a function definition
    appertains to the function.
@@ -147,9 +154,10 @@ Semantics
    converted  to  the  type  of  the  corresponding  parameter  as  if by
    assignment.  (Array  expressions and function designators as arguments
    were converted to pointers before the call.)
-   
-   12 For local defined functions using a variably modified  return type, 
-   the VM types are evaluated at the point of function definition.
+
+   12  For  localy  defined  functions  and  non extern function literals
+   expressions  using  variably modified as return type, the VM types are
+   evaluated at the point of function definition.
 
    13  After all parameters have been assigned, the compound statement of
    the function body is executed.
@@ -158,19 +166,18 @@ Semantics
    body  is  reached,  and  the value of the function call is used by the
    caller, the behavior is undefined.
 
-   15 Labels from the enclosing function are not shared beteen the enclusing f
-   function and the local defined functions.
+   15  Labels  declared  in an enclosing function are not shared with any
+   locally defined function or function literal.
 
-   15 The variables;tab;enumerbers from the enclosing function are accessible
-     in the body of the localled defined function 
-   
-   16 Object with automatica storage duration from tehe enclosing function are
-   visible. Constexpr objects can be evaluated inside the body of the local funcatio
-   but they become non lvalues. Non constexpr objects with automatic durarion
-   from the enclosing function cannot be evaluated inside the body of local function.
-   
+   16  Variables, tags, and enumerators declared in an enclosing function
+   are  accessible  within  the  body  of  a  locally defined function or
+   function literal.
 
-
+   17  An object with automatic storage duration declared in an enclosing
+   function  shall  not be evaluated within a locally defined function or
+   function  literal.  An  exception is made for constexpr objects, which
+   may  be  evaluated as if they were named constants and not lvalues; in
+   particular, their address shall not be taken.
 
 A.3 Phrase structure grammar
 [...]
